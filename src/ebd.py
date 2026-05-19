@@ -10,11 +10,11 @@ class Workers:
     n: int = 2
     n_g: int = 2
     mu_p: float = 5.0
-    sigma_p: float = 2.0 # Std, not variance
+    sigma_p: float = 1.0 # Std, not variance
     mu_res: float = 1.0
     sigma_res: float = 0.5 # Std, not variance
-    rho: float = 0.1 # Correlation between Productivity and Reservation wage
-    sigma_signal: float = 0.5 # True standard deviation of signal around realised productivity
+    rho: float = 0.25 # Correlation between Productivity and Reservation wage
+    sigma_signal: float = 1.5 # True standard deviation of signal around realised productivity
     group_1_share: float = 0.1  # fraction of workers in group 1 (minority); group 0 is majority
 
     def __post_init__(self):
@@ -66,15 +66,15 @@ class Firms:
     global_mean: float = 2.0 # Only used if hierarchical == True
 
     #Posteriors - uncertainty over true distribution is the same for all groups
-    mu_0: float = 1.0
-    nu_0: float = 1.0
-    alpha_0: float = 2.5
-    beta_0: float = 2.5
+    mu_0: float = field(default_factory=lambda: np.array([5.0, 5.0]))
+    nu_0: float = field(default_factory=lambda: np.array([100.0, 1.0]))
+    alpha_0: float = field(default_factory=lambda: np.array([25.0, 2.5]))
+    beta_0: float = field(default_factory=lambda: np.array([2.5, 25.0]))
 
     # Posteriors - uncertainty over quality of signal is different
     # Correctly believe tha signal is unbiased - true mean of signal variation is zero
     delta_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
-    kappa_0: np.ndarray = field(default_factory=lambda: np.array([1.0, 10.0]))
+    kappa_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
 
     def __post_init__(self):
         self.firms_info = {
@@ -83,10 +83,10 @@ class Firms:
                 # Priors on group g
                 {
                     g: 
-                [self.mu_0, # Prior on group means
-                self.nu_0,
-                self.alpha_0,
-                self.beta_0,
+                [self.mu_0[g], # Prior on group means
+                self.nu_0[g],
+                self.alpha_0[g],
+                self.beta_0[g],
                 self.delta_0[g],
                 self.kappa_0[g]]
                 for g in range(self.n_g)},
@@ -224,7 +224,7 @@ class Firms:
     def get_priors(self, workers, pairs) -> tuple[np.ndarray, np.ndarray]:
         """sig_var and prod_var for all (firm, group). Shapes (n_firms, n_g)."""
         _cand_groups = workers.groups[pairs] 
-            # gather posterior params for each candidate's group
+        # gather posterior params for each candidate's group
         firm_idx_2d = np.arange(self.n)[:, None]     # (F,1)
         _cand_post = self.beliefs[firm_idx_2d, _cand_groups, :]   # (F,2,6)
         mu = _cand_post[:, :, I_MU]
@@ -242,21 +242,6 @@ class Firms:
         """Function for choosing which bandit is best; currently myopic, need to implement UCB here too;
         COuld also potentially do q-Learning? But not really applicable here!"""
         pass
-
-    # Reduandant as vectorised
-    def wage_offer(self, firm, workers, matched_worker):
-
-        worker_group = workers.workers_info[matched_worker][3] # Gives group of worker
-        signal = workers.workers_info[matched_worker][2] # Observed signal
-        mu, nu, alpha, beta, delta, kappa = self.firms_info[firm][0][worker_group]
-
-        sig_var = kappa / (delta - 1)
-        prod_var = beta / (alpha -1)
-
-        w = prod_var / (prod_var + sig_var)
-
-        wage_offer = (w * signal) + (1- w) * mu # Wage offer is weighted average of observed signal and best guess of prod of that group based on variance of the two
-        return wage_offer
 
 N_G = 2 # Num groups same in both worker and firm classes
 
@@ -327,6 +312,9 @@ class Simulation:
 
         self.chosen_group_log = np.zeros((T, F), dtype=np.int64)
         self.cand_groups_log = np.zeros((T, F, 2), dtype=np.int64)
+
+        self.cand_surplus_log = np.full((T, F, 2), np.nan, dtype=np.float64)
+        self.surplus_obtained_log = np.zeros((T, F), dtype=np.float64)
 
         self.wage_by_group: dict[int, np.ndarray] | None = None
         self.cdf_by_group: dict[int, tuple[np.ndarray, np.ndarray]] | None = None
@@ -401,7 +389,68 @@ class Simulation:
         self._cand_res = cand_res              # (F, 2)
         self._cand_groups = cand_groups        # (F, 2)
 
+        # Tracking Firm behaviour
+        self._chosen_exp_prod = mu[f, choice]        # (F, ) ; expected productivity (prior on candidates productivity)
+        self._exp_diff = self.chosen_prod - self._chosen_exp_prod # (F, ) ; difference between observed and expected productivity
+
+        ## Note
+        # This is driving the changes in expectations - IF there is a trly bad initial experience, ie an individual from gr 1 
+        # is hired, the observed productivity is much worse, and they tend not to hire from thm again, while positive experiences
+        # tend to reutrn to proper expectations, as they hire from the same group again, and consequently gather more data on them
+
         self.record()
+
+        
+    def record(self) -> None:
+        """Write one period into preallocated logs."""
+        t = self._t
+        w = self._wage_offer
+        p = self._cand_prod
+        r = self._cand_res
+        d = self._exp_diff
+
+        # See firm_step
+        self.surplus_obtained_log[t] = d
+
+        self.chosen_group_log[t] = self.chosen_group
+        self.cand_groups_log[t] = self._cand_groups
+
+        # Offers and choices
+        self.wage_offers[t] = w
+        self.chosen_wage_log[t] = self.chosen_wage
+        self.accepted_log[t] = self.accepted
+
+        # Profit: surplus only if hire accepted
+        actual_profit = np.where(
+            self.accepted,
+            self.chosen_prod - self.chosen_wage,
+            0.0,
+        )
+
+        self.profit[t] = actual_profit
+
+        # Oracle: best feasible surplus among the two candidates
+        feasible = w > r
+        surplus = p - w
+        surplus = np.where(feasible, surplus, np.nan)
+        oracle = np.nanmax(surplus, axis=1)
+        oracle = np.nan_to_num(oracle, nan=0.0)
+
+        self.regret[t] = oracle - actual_profit
+
+        # Accepted wage (NaN if rejected)
+        self.accepted_wages[t] = np.where(
+            self.accepted,
+            self.chosen_wage,
+            np.nan,
+        )
+
+        # Mean chosen wage by group (among firms that chose that group)
+        for g in range(self.ng):
+            mask = self.chosen_group == g
+            if np.any(mask):
+                self.wages[t, g] = float(np.mean(self.chosen_wage[mask]))
+
 
     def simulate(self, base_seed: int = 1):
         for t in range(self.horizon):
@@ -410,6 +459,16 @@ class Simulation:
             self.pairs = self.match_two_per_firm(rng)
             self.firm_step(self.pairs)
         self._build_wage_distributions()
+
+    def trace_firm_choice(self):
+        choice = self.chosen_group_log
+        diff = self.surplus_obtained_log
+        print(choice.shape)
+
+        for firm_log in range(self.nf):
+            if choice[:, firm_log].sum()/ self.horizon < 0.05:
+                print(diff[:, firm_log][choice[:, firm_log] == 1])
+
 
     def _period_range(self, scope: str | None) -> range | list[int]:
         scope = scope or self.wage_dist_scope
@@ -524,12 +583,13 @@ class Simulation:
         self.ng = self.workers.n_g
         self._init_log_buffers()
 
-    def record(self) -> None:
+ 
         """Write one period into preallocated logs."""
         t = self._t
         w = self._wage_offer
         p = self._cand_prod
         r = self._cand_res
+        s = self._cand_signal
 
         self.chosen_group_log[t] = self.chosen_group
         self.cand_groups_log[t] = self._cand_groups
@@ -554,6 +614,8 @@ class Simulation:
         surplus = np.where(feasible, surplus, np.nan)
         oracle = np.nanmax(surplus, axis=1)
         oracle = np.nan_to_num(oracle, nan=0.0)
+
+        print(self.chosen_group)
 
         self.regret[t] = oracle - actual_profit
 

@@ -1,6 +1,6 @@
 from src.ebd import Simulation
 
-N_FIRMS = 1000
+N_FIRMS = 10000
 GROUP_1_SHARE = 0.1  # minority share; change to sweep parameters
 WAGE_DIST_SCOPE = "final"  # "all" | "final" — periods included in CDF / means
 
@@ -10,8 +10,8 @@ wk = {"n": 2 * N_FIRMS, "n_g": 2, "group_1_share": GROUP_1_SHARE}
 sim = Simulation(
     fk,
     wk,
-    horizon=1000,
-    wage_dist_which="all_offers",
+    horizon=100,
+    wage_dist_which="chosen",
     wage_dist_scope=WAGE_DIST_SCOPE,
 )
 sim.simulate(base_seed=42)
@@ -29,3 +29,6 @@ for g in range(sim.ng):
         f"group {g}: n={w.size}, mean={w.mean():.3f}, "
         f"P(wage > 4)={sim.fraction_above(g, 4.0):.1%}"
     )
+
+sim.trace_firm_choice()
+
