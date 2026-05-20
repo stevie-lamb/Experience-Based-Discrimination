@@ -1,16 +1,16 @@
 from src.ebd import Simulation
 
-N_FIRMS = 1000
-GROUP_1_SHARE = 0.25  # minority share; change to sweep parameters
+N_FIRMS = 10000
+GROUP_1_SHARE = 0.1  # minority share; change to sweep parameters
 WAGE_DIST_SCOPE = "final"  # "all" | "final" — periods included in CDF / means
 
 fk = {"n": N_FIRMS, "n_g": 2}
-wk = {"n": 2000, "n_g": 2, "group_1_share": GROUP_1_SHARE}
+wk = {"n": 15000, "n_g": 2, "group_1_share": GROUP_1_SHARE}
 
 sim = Simulation(
     fk,
     wk,
-    horizon=1000,
+    horizon=100,
     wage_dist_which="chosen",
     wage_dist_scope=WAGE_DIST_SCOPE,
 )
