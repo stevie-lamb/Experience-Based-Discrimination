@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 
 rng = np.random.default_rng(123)
 
-
 @dataclass
 class Workers:
     n: int = 2
@@ -14,7 +13,6 @@ class Workers:
     mu_res: float = 1.0
     sigma_res: float = 0.5 # Std, not variance
     rho: float = 0.25 # Correlation between Productivity and Reservation wage
-    sigma_signal: float = 1.5 # True standard deviation of signal around realised productivity
     group_1_share: float = 0.1  # fraction of workers in group 1 (minority); group 0 is majority
 
     def __post_init__(self):
@@ -54,8 +52,8 @@ class Workers:
     def accept_wage(self, worker_id, wageoffer):
         return wageoffer > self.res[worker_id]
 
-I_MU, I_NU, I_ALPHA, I_BETA, I_DELTA, I_KAPPA = 0, 1, 2, 3, 4, 5
-N_FIELDS = 6
+I_MU, I_NU, I_ALPHA, I_BETA = 0, 1, 2, 3
+N_FIELDS = 4
 
 @dataclass
 class Firms:
@@ -71,34 +69,12 @@ class Firms:
     alpha_0: float = field(default_factory=lambda: np.array([25.0, 2.5]))
     beta_0: float = field(default_factory=lambda: np.array([2.5, 25.0]))
 
-    # Posteriors - uncertainty over quality of signal is different
-    # Correctly believe tha signal is unbiased - true mean of signal variation is zero
-    delta_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
-    kappa_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
-
     def __post_init__(self):
-        self.firms_info = {
-            i: 
-            [
-                # Priors on group g
-                {
-                    g: 
-                [self.mu_0[g], # Prior on group means
-                self.nu_0[g],
-                self.alpha_0[g],
-                self.beta_0[g],
-                self.delta_0[g],
-                self.kappa_0[g]]
-                for g in range(self.n_g)},
-                # Hiring History
-                []
-            ]
-                for i in range(self.n)}
 
         self.beliefs = self._init_firm_posteriors(self.n, self.n_g, self.mu_0,
                                                  self.nu_0, self.alpha_0,
-                                                 self.beta_0, self.delta_0,
-                                                 self.kappa_0)
+                                                 self.beta_0
+                                                 )
 
     def _init_firm_posteriors(self,
         n_firms: int,
@@ -120,66 +96,31 @@ class Firms:
         posterior[:, :, I_ALPHA] = alpha_0
         posterior[:, :, I_BETA] = beta_0
 
-        d = np.asarray(delta_0, dtype=np.float64)
-        k = np.asarray(kappa_0, dtype=np.float64)
-        if d.ndim == 1:
-            d = np.broadcast_to(d, (n_firms, n_g))
-        if k.ndim == 1:
-            k = np.broadcast_to(k, (n_firms, n_g))
-        posterior[:, :, I_DELTA] = d
-        posterior[:, :, I_KAPPA] = k
         return posterior
-
-    def update_priors(self, firm, workers, matched_worker):
-        worker_group = workers.workers_info[matched_worker][3] # Gives group of worker
-        obs_prod = workers.workers_info[matched_worker][0] # Productivity learnt from employing matched worker
-        obs_signal = workers.workers_info[matched_worker][2] # Observed signal of employed worker
-
-        obs_signal_error = obs_prod - obs_signal
-        firm_info = self.firms_info[firm][0]
-
-        mu_prior, nu_prior, alpha_prior, beta_prior, delta_prior, kappa_prior = firm_info[worker_group]
-
-        nu_post = nu_prior + 1
-        mu_post = ((mu_prior * nu_prior) + obs_prod) / nu_post
-        alpha_post = alpha_prior + 0.5
-        beta_post = beta_prior + (nu_prior * (obs_prod - mu_prior)**2) / (2 * nu_post)
-
-        delta_post = delta_prior + 1/2
-        kappa_post = kappa_prior + (obs_signal_error**2 / 2)
-
-        self.firms_info[firm][0][worker_group] = mu_post, nu_post, alpha_post, beta_post, delta_post, kappa_post
 
     def batch_update_posteriors(self,
     posterior: np.ndarray,
     firm_idx: np.ndarray,
     group_idx: np.ndarray,
     obs_prod: np.ndarray,
-    obs_signal: np.ndarray,
+
     ) -> None:
         """In-place update for each (firm, group) pair in the batch."""
         mu = posterior[firm_idx, group_idx, I_MU]
         nu = posterior[firm_idx, group_idx, I_NU]
         alpha = posterior[firm_idx, group_idx, I_ALPHA]
         beta = posterior[firm_idx, group_idx, I_BETA]
-        delta = posterior[firm_idx, group_idx, I_DELTA]
-        kappa = posterior[firm_idx, group_idx, I_KAPPA]
-
-        obs_signal_error = obs_prod - obs_signal
 
         nu_post = nu + 1.0
         mu_post = (mu * nu + obs_prod) / nu_post
         alpha_post = alpha + 0.5
         beta_post = beta + (nu * (obs_prod - mu) ** 2) / (2.0 * nu_post)
-        delta_post = delta + 0.5
-        kappa_post = kappa + (obs_signal_error**2) / 2.0
+
 
         posterior[firm_idx, group_idx, I_MU] = mu_post
         posterior[firm_idx, group_idx, I_NU] = nu_post
         posterior[firm_idx, group_idx, I_ALPHA] = alpha_post
         posterior[firm_idx, group_idx, I_BETA] = beta_post
-        posterior[firm_idx, group_idx, I_DELTA] = delta_post
-        posterior[firm_idx, group_idx, I_KAPPA] = kappa_post
 
     def update_priors(self,         # (F,G,6), in-place
         group_mask: np.ndarray,       # (F,G) bool
@@ -200,8 +141,6 @@ class Firms:
         nu = self.beliefs[firm_idx, group_idx, I_NU]
         alpha = self.beliefs[firm_idx, group_idx, I_ALPHA]
         beta = self.beliefs[firm_idx, group_idx, I_BETA]
-        delta = self.beliefs[firm_idx, group_idx, I_DELTA]
-        kappa = self.beliefs[firm_idx, group_idx, I_KAPPA]
 
         p = obs_prod[firm_idx]
         s = obs_signal[firm_idx]
@@ -211,15 +150,11 @@ class Firms:
         mu_post = (mu * nu + p) / nu_post
         alpha_post = alpha + 0.5
         beta_post = beta + (nu * (p - mu) ** 2) / (2.0 * nu_post)
-        delta_post = delta + 0.5
-        kappa_post = kappa + 0.5 * (e ** 2)
 
         self.beliefs[firm_idx, group_idx, I_MU] = mu_post
         self.beliefs[firm_idx, group_idx, I_NU] = nu_post
         self.beliefs[firm_idx, group_idx, I_ALPHA] = alpha_post
         self.beliefs[firm_idx, group_idx, I_BETA] = beta_post
-        self.beliefs[firm_idx, group_idx, I_DELTA] = delta_post
-        self.beliefs[firm_idx, group_idx, I_KAPPA] = kappa_post
 
     def get_priors(self, workers, pairs) -> tuple[np.ndarray, np.ndarray]:
         """sig_var and prod_var for all (firm, group). Shapes (n_firms, n_g)."""
@@ -231,12 +166,9 @@ class Firms:
         nu = _cand_post[:, :, I_NU]
         alpha = _cand_post[:, :, I_ALPHA]
         beta = _cand_post[:, :, I_BETA]
-        delta = _cand_post[:, :, I_DELTA]
-        kappa = _cand_post[:, :, I_KAPPA]
 
-        sig_var = kappa / (delta - 1.0)
         prod_var = beta / (alpha - 1.0)
-        return sig_var, prod_var, mu, nu, alpha, beta, delta, kappa
+        return prod_var, mu, nu, alpha, beta
 
     def choice(self, options):
         """Function for choosing which bandit is best; currently myopic, need to implement UCB here too;
@@ -352,17 +284,17 @@ class Simulation:
         cand_prod = self.workers.prod[pairs]       # (self.n,2)
         cand_res = self.workers.res[pairs]         # (self.n,2)
   
-        sig_var, prod_var, *priors = self.firms.get_priors(self.workers, pairs)
-        mu = priors[0]
-        w_sig = prod_var / (prod_var + sig_var)
+        prod_var, *priors = self.firms.get_priors(self.workers, pairs)
 
-        # Weight signal and prior mean by their variances
-        # (w_sig) -> 0 as sig_var -> inf; w_sig -> 1 as sig_var -> 0
-        # TODO! Wage offer function? ALthough I think it will always be the same!
-        wage_offer = w_sig * cand_signal + (1.0 - w_sig) * mu   # (F,2)
+        # Wage offer is simply expected prod.
+
+        mu = priors[0]
+        wage_offer = mu
+
+       
 
         # Expected productivity of current matched workers is their signal since they believe it is unbiased!
-        exp_profit = cand_signal - wage_offer
+        exp_profit = cand_signal - mu
 
         choice = np.argmax(exp_profit, axis=1)  # (F,)
         f = np.arange(self.nf)
