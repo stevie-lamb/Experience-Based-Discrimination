@@ -363,7 +363,7 @@ class Simulation:
 
 
         if self.ucb:
-            c = 25
+            c = 1
             p_t = 1 - (1 / (self._t + 1)) ** c
             exp_profit_ucb = stats.norm.ppf(p_t, loc=mu, scale=prod_var)
             choice = np.argmax(exp_profit_ucb, axis=1)  # (F,)
@@ -685,6 +685,5 @@ class Simulation:
 
 if __name__ == "__main__":
     pass
-
 
 
