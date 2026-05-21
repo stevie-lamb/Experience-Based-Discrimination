@@ -1,4 +1,6 @@
 \documentclass[]{article}
+\usepackage[round]{natbib}
+\usepackage[margin=1in]{geometry}
 
 %opening
 \title{Experience Based Discrimination: An Agent Based Model}
@@ -16,6 +18,8 @@
 
 \begin{abstract}
 	This paper aims to construct an Agent Based Model of the labour market via a contextual bandit problem. The paper seeks to uncover mechanisms by which discrimination in the labour market occurs, and subsequently, policy that can remedy said mechanisms. While the model does not fully explain discrimination in the labour market, reflections upon it's results provide useful insight.
+	
+	The contribution of this paper is to show that by not creating a model of equilibrium, wage distributions can be generated the more realistically replicate empirical reality, and thus provide further insight on the consequences of Experience Based Discrimination
 \end{abstract} %%%%%%%%%
 
 \bigskip
@@ -27,18 +31,31 @@ Discrimination in the labour market is multi-faceted, and presents itself in man
 \section*{Literature Review}
 
 \subsection*{Discrimination}
+\subsubsection*{Theory}
 
-LePage (2023) develops a model of Experience Based Dsicrimination. The paper, which largely motivates the dvelopment of the model presented in this paper, posits that firms are not only uncertain over individual productivities, but also the productivity of the group. TYpically economic letreature has compartmentalised discrimination into two main categories, \textit{taste-based}, and \textit{statistical} discrimination. The former, associated with Becker (1957), corresponds to discrimination purely because the hiring manager prefers (or dislikes) some group. The latter is predicated on the assumption that firms are not inherently discriminatory, but are discriminatory in practice due to failures in ability ot read signals. The literature is associated with the Arrow and Phelps lineage. Statistical Discrimination \cite[]{phelpsstat} arrives because of \textit{"scarcity of information about the existence and characteristics of workers and jobs"}. Thus, the 'Experience Based Discrimination' is closely related to the statistical discrimination literature. However, there is a large difference, as noted by LePage
+LePage (2023) develops a model of Experience Based Discrimination. The paper, which largely motivates the development of the model presented in this paper, posits that firms are not only uncertain over individual productivities, but also the productivity of the group. Typically economic literature has compartmentalised discrimination into two main categories, \textit{taste-based}, and \textit{statistical} discrimination. The former, associated with Becker (1957), corresponds to discrimination purely because the hiring manager prefers (or dislikes) some group. The latter is predicated on the assumption that firms are not inherently discriminatory, but are discriminatory in practice due to failures in ability ot read signals. The literature is associated with the Arrow and Phelps lineage. Statistical Discrimination \citep{phelpsstat} arrives because of \textit{"scarcity of information about the existence and characteristics of workers and jobs"}. Thus, the 'Experience Based Discrimination' is closely related to the statistical discrimination literature. However, there is a large difference, as noted by LePage, this thoery relies on some inherent difference in the characteristics of groups, while Experience Based Discrimination does not.
+
+Other models such as that of Lundberg and Startz, and Coates, show that perverse employer beliefs can cause minority groups  to underinvest in human capital, which creates divergence between group productivities.
+
+\subsubsection*{Empirics}	
+
+LePage, Li + Bergman hiring as epxloration. 
 
 \subsection*{Multi Armed Bandit Problems}
 
 \bigskip
+
+\subsection*{Agent Based Modelling}
+
+As noted by Lundberg and Startz (1983), models of competitive markets and perfect information are unable to explain how discrimination can arise. This is a problem common to many economic models in some capacity, and can only provide treatment of such firm behaviour as an exogenous shock, this has been a great motivation for the literature on Agent Based Models (ABMs). Del RIo Chanona (2025) provides a definition of ABMs. As noted by XXX, ABMs receive plaudits for their ability to explain endogenous behaviour, however mainstream economists tend to avoid them due to the perceived arbitrariness of modelling decisions.s
 
 \subsection*{Reinforcement Learning}
 
 \bigskip
 
 \section*{Model}
+
+
 
 Cowgill and Tucker (2019) note that the notion of bias, and thus outcomes are inherently linked to the objective function of the firm. To achieve equal productivity, that is equal payoff for the firm between groups, the firm must first decide their objective, hiring policy could seek to maximise efficiency, innovation, or some other internal objective idiosyncratic to some division of firm. Although the simplicity of the model makes it seem as though firms should just seek to maximise profit, the fact that it is a Multi Armed Bandit Model presents an additional metric to optimise: regret.
 
@@ -47,7 +64,7 @@ Regret is defined as the difference between the realised productivity of the arm
 $$R = P_c - P_{optimal}$$
 
 In this model, it can be shown that minimising regret is equivalent to maximising profit. This motivates the use of BayesUCB to model soft (?) affirmative action policy - it aims to minimise regret by encouraging exploration of the arms, the data gathering allows firms to reduce regret (increase profit). While the firms objective function is essentially unchanged, the re-framing of the problem from one of profit maximisation to regret minimisation enlighten us that in cases where groups have the equal expected productivity, fairness and profit are equivalent objectives.
-\section*{Simulation}
+\section*{Simulation Results}
 
 \bigskip
 
@@ -55,10 +72,10 @@ In this model, it can be shown that minimising regret is equivalent to maximisin
 
 It should be of course acknowledged, that while each model purports some specific mechanism of discrimination, the true mechanism is likely to be some combination of each.
 
-\begin{abstract}
+\subsection*{Algorithmic Fairness}
 
-\end{abstract}
+A key point that this model provides guidance on is that of Algorithmic Fairness. If employers are to use Machine Learning to decide who to hire in their hiring policy, this could lead to a bias analogous to that presented in this paper; underlying data inherently contains the kernel of human bias, and carries this forward. This highlights the importance of policy intervention, and underpins tha the common problem that Reinforcement Learning seeks to solve: one of \textit{exploration} vs \textit{exploitation}.
 
-\section{}
-
+\bibliography{references}
+\bibliographystyle{plainnat}
 \end{document}
