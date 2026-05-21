@@ -30,8 +30,13 @@ Discrimination in the labour market is multi-faceted, and presents itself in man
 
 \section*{Model}
 
-\bigskip
+Cowgill and Tucker (2019) note that the notion of bias, and thus outcomes are inherently linked to the objective function of the firm. To achieve equal productivity, that is equal payoff for the firm between groups, the firm must first decide their objective, hiring policy could seek to maximise efficiency, innovation, or some other internal objective idiosyncratic to some division of firm. Although the simplicity of the model makes it seem as though firms should just seek to maximise profit, the fact that it is a Multi Armed Bandit Model presents an additional metric to optimise: regret.
 
+Regret is defined as the difference between the realised productivity of the arm chosen, and the productivity of the optimal arm (that which would be chosen by an oracle). 
+
+$$R = P_c - P_{optimal}$$
+
+In this model, it can be shown that minimising regret is equivalent to maximising profit. This motivates the use of BayesUCB to model soft (?) affirmative action policy - it aims to minimise regret by encouraging exploration of the arms, the data gathering allows firms to reduce regret (increase profit). While the firms objective function is essentially unchanged, the re-framing of the problem from one of profit maximisation to regret minimisation enlighten us that in cases where groups have the equal expected productivity, fairness and profit are equivalent objectives.
 \section*{Simulation}
 
 \bigskip
