@@ -1,6 +1,13 @@
 \documentclass[]{article}
 \usepackage[round]{natbib}
 \usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{graphicx}
+
+
+
 
 %opening
 \title{Experience Based Discrimination: An Agent Based Model}
@@ -33,44 +40,153 @@ Discrimination in the labour market is multi-faceted, and presents itself in man
 \subsection*{Discrimination}
 \subsubsection*{Theory}
 
-LePage (2023) develops a model of Experience Based Discrimination. The paper, which largely motivates the development of the model presented in this paper, posits that firms are not only uncertain over individual productivities, but also the productivity of the group. Typically economic literature has compartmentalised discrimination into two main categories, \textit{taste-based}, and \textit{statistical} discrimination. The former, associated with Becker (1957), corresponds to discrimination purely because the hiring manager prefers (or dislikes) some group. The latter is predicated on the assumption that firms are not inherently discriminatory, but are discriminatory in practice due to failures in ability ot read signals. The literature is associated with the Arrow and Phelps lineage. Statistical Discrimination \citep{phelpsstat} arrives because of \textit{"scarcity of information about the existence and characteristics of workers and jobs"}. Thus, the 'Experience Based Discrimination' is closely related to the statistical discrimination literature. However, there is a large difference, as noted by LePage, this thoery relies on some inherent difference in the characteristics of groups, while Experience Based Discrimination does not.
+\citet{Lepage2024} develops a model of Experience Based Discrimination. The paper, which largely motivates the development of the model presented in this paper, posits that firms are not only uncertain over individual productivities, but also the productivity of the group. Typically economic literature has compartmentalised discrimination into two main categories, \textit{taste-based}, and \textit{statistical} discrimination. The former, associated with Becker (1957), corresponds to discrimination purely because the hiring manager prefers (or dislikes) some group. The latter is predicated on the assumption that firms are not inherently discriminatory, but are discriminatory in practice due to failures in ability to read signals. The Statistical Discrimination literature is associated with the work of \citet{Arrow1973} and \citet{phelpsstat}. Here, discrimination arrives because of \textit{"scarcity of information about the existence and characteristics of workers and jobs"}. Thus, the 'Experience Based Discrimination' is closely related to the statistical discrimination literature. However, there is a large difference, as noted by \citet{Lepage2024}, Statistical Discrimination relies on some inherent difference in the characteristics of groups, while Experience Based Discrimination does not.
 
-Other models such as that of Lundberg and Startz, and Coates, show that perverse employer beliefs can cause minority groups  to underinvest in human capital, which creates divergence between group productivities.
+Other models such as that of \citet{LunderbergStartz1983} utilise endogenous human capital decisions to engender discrimination; if workers from minority groups expect to receive a lower wage for their efforts, then they will underinvest in human capital, creating a divergence in productivity between groups. The model, however, relies on innate differences on reliability of observable test scores upon which wages are based.
+and \citet{CoatesLoury1993}, show that perverse employer beliefs can cause minority groups  to underinvest in human capital, which creates divergence between group productivities.
+
 
 \subsubsection*{Empirics}	
 
-LePage, Li + Bergman hiring as epxloration. 
+\citet{LiRaymondBergman2020} use firm-level recruitment data to test ML algorithms in hiring policy. Due to a lack of data on performance, the data objective function is to maximise hiring potential conditional on being interviewed; they find that algorithms that algorithms that understand the trade-off between exploration and exploitation perform much better on metrics of fairness and efficiency of hiring policy than 'supervised' ML algorithms focus on exploitation.
+\citet{Lepage2024} uses an expiremental labour market design to observe experience based discrimination; they too find evidence that endogenous learning can create discrimination.
+Both of these papers set up their empirics as a 'Multi-Armed Bandit' problem.
 
 \subsection*{Multi Armed Bandit Problems}
 
-\bigskip
-
-\subsection*{Agent Based Modelling}
-
-As noted by Lundberg and Startz (1983), models of competitive markets and perfect information are unable to explain how discrimination can arise. This is a problem common to many economic models in some capacity, and can only provide treatment of such firm behaviour as an exogenous shock, this has been a great motivation for the literature on Agent Based Models (ABMs). Del RIo Chanona (2025) provides a definition of ABMs. As noted by XXX, ABMs receive plaudits for their ability to explain endogenous behaviour, however mainstream economists tend to avoid them due to the perceived arbitrariness of modelling decisions.s
+Multi Armed Bandit (MAB) problems have a strong history in economics; MABs are usually applied to problems characterised by a trade-off between exploration and exploitation \citet{BergemannValimaki2006}, that is, executing an action we currently believe to be optimal, versus exploring the action space to understand whether some other action is optimal.
+The Contextual bandit problem is similar, but the agent observes a an N-dimensional \textit{feature} vector, providing context over each arm.
 
 \subsection*{Reinforcement Learning}
 
 \bigskip
 
+\subsection*{Agent Based Modelling}
+
+As noted by \citet{LunderbergStartz1983}, models of competitive markets and perfect information are unable to explain how discrimination can arise. This is a problem common to many economic models in some capacity, and can only provide treatment of such firm behaviour as an exogenous shock, this has been a great motivation for the literature on Agent Based Models (ABMs). \citet{PangalloDelRioChanona2024} provides a definition of ABMs.XXX and XXX provide examples of ABMs in labour markets. As noted by XXX, ABMs receive plaudits for their ability to explain endogenous behaviour, however mainstream economists tend to avoid them due to the perceived arbitrariness of modelling decisions. 
+
+
+
 \section*{Model}
 
+\subsubsection*{Workers}
+
+There are $N_w$ workers in the set of workers $W$, each belonging to a group $G \in g = 1, 2, ..., G$, such that $\bigcup_{g=1}^{G} G_g = W$, and $G_i \cap G_j = \emptyset \quad \forall i, j \in \{1, 2, \dots, G\}$ where $ i \neq j$. 
+
+\vspace{0.1cm}
+
+Workers have an innate ability, which constitutes their marginal productivity, but is unobservable to firms, and a purely stochastic signal that is observable to the firms. Although workers in the model are heterogeneous, the underlying distributions from which their productivities and signals are drawn are homogenous.
+
+\begin{center}
+$Productivity \sim \mathcal{N}(\mu_g, \sigma_{pg}^2)$
+	
+	\vspace*{0.2cm}
+	
+	$Signal \sim \mathcal{N}(0, \sigma_{sg}^2)$
+\end{center}
+With a mean of 0, the signal on the workers' productivity is unbiased.
+
+Then:
+\begin{center}
+	$Productivity = ability + \epsilon_{pg}$
+	
+	\vspace{0.2cm}
+	
+	$Signal = Productivity + \epsilon_{sg} = ability + \epsilon_{pg} + \epsilon_{sg}$
+	
+\end{center}
+
+Unlike other models of statistical discrimination, the nature of endogenous learning within the model does not necessitate the groups of workers to be inherently different.
+
+Then:
+\begin{center}
+	$\mu_g = \mu$, \hspace*{0.2cm}
+	$ \sigma_{pg}^2 = \sigma_p$,\hspace*{0.2cm}
+	$ \sigma_{sg}^2 = \sigma_s$ \hspace*{0.2cm} $ \forall g$
+\end{center}
+
+\subsubsection*{Firms}
+
+Each firm faces a 'Multi Armed Bandit problem; at each time period $t$, the firm matches with a number of prospective employees from the worker group, and they must decide which 'arm' (worker) to employ for the coming period. The firm must pull the arm (employ the worker) that they believe will provide them with the greatest profit. 
+The problem becomes a 'Contextual Bandit' problem because the firm observes a \textit{feature vector} describing the nature of the prospective workers: they observe both the group they belong to, and the signal on their productivity.
+
+The firm selects worker $i$ to maximise expected profit $\pi$:
+
+\begin{center}
+	$\operatorname*{argmax}_i \pi = \mathbb{E}(\mu_i) - w_i$
+\end{center}
+
+The firms are modelled as \textit{Bayesian Updaters}: they have a prior distribution over both the distribution of productivities, and of signals for each group. If firms were \textit{frequentist}, their expectations would be biased heavily towards the few observations they have. Modelling firms as Bayesian makes sense as they already have a sensible estimate of the distribution of the group's productivity distribution from the outset.
+
+The firms correctly model productivity and signals as being normally distributed. For productivity, the firms have uncertainty over both the mean and the variance of the true distribution. Then the conjugate prior for this distribution is $NormalInverseGamma$.
+
+\begin{center}
+	$P_g | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
+	
+	\vspace{0.2cm}
+	$\mu | \sigma_{pg}^2 \sim \mathcal{N}(\mu_0, \frac{\sigma_{pg}^2}{\eta_0} )$
+	
+	\vspace{0.2cm}
+	$\sigma_{pg}^2 \sim IG(\alpha_0, \beta_0)$
+	
+\end{center}
+
+\begin{center}
+	$\pi(P_{new}|P, \mu_i, \sigma_{pg}, \alpha_0, \beta_0) = p(P)$
+
+\end{center}
+
+Although the groups have identical parameters, firms have a set of prior distributions, and thus posterior distributions for each worker group.
+
+-----------------------------------------------------
+Finish Bayesian stuff
+------------------------------------------------------
+
+In the model firms are assumed to have a strong degree of monopsony power; since matches only last one period, workers cannot reject in order to continue search, as they will remain unemployed for that period if they reject. Then firms determine the wage entirely.
+Firms use a weight average of the expected productivity of an individual, and the observable signal. The weight is determined by the variance of each of these, as given by the firms current posterior distribution. Since the firms update their priors over each group, the wage is determined partly by their group membership: if the firm is uncertain about the group's productivity, they will more heavily weight the signal, and vice versa.
+
+\begin{center}
+	$w_{ig} = \phi * \mathbb{E}[\mu_g] + (1 - \phi) * signal_i$
+	
+	\vspace{0.2cm}
+	$\phi = \dfrac{\sigma_{sg}}{\sigma_{sg}  + \sigma_{pg}}$
+\end{center}
+Then as $\sigma_{pg} \to \infty, \phi \to 0$ and we put no weight on the group's productivity distribution. While as $\sigma_{pg} \to 0, \phi \to 1$ and we put full weight on the group's productivity because firm believes the productivity of the group has a mass fully centered on the mean.
+
+And because these variances are modelled by Inverse Gamma distributions, we use the expected values of these distributions to obtain the variances, where parameters are updated as in (?).
+
+\begin{center}
+	$\sigma_{sg} = \dfrac{\beta_{post}}{\alpha_{post}}$
+	\vspace{0.2cm}
+	
+	$\sigma_{pg} = \dfrac{\delta_{post}}{\kappa_{post}}$
+\end{center}
+
+\subsubsection*{The Market}
+The timeline of the model is as follows:
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth, trim=50pt 408pt 50pt 60pt, clip]{model_timeline.pdf}
+	\label{fig:timeline}
+\end{figure}
+
+Workers exit the market at a rate of $\delta$, at which point they are replaced by a worker of the same group.
 
 
-Cowgill and Tucker (2019) note that the notion of bias, and thus outcomes are inherently linked to the objective function of the firm. To achieve equal productivity, that is equal payoff for the firm between groups, the firm must first decide their objective, hiring policy could seek to maximise efficiency, innovation, or some other internal objective idiosyncratic to some division of firm. Although the simplicity of the model makes it seem as though firms should just seek to maximise profit, the fact that it is a Multi Armed Bandit Model presents an additional metric to optimise: regret.
-
-Regret is defined as the difference between the realised productivity of the arm chosen, and the productivity of the optimal arm (that which would be chosen by an oracle). 
-
-$$R = P_c - P_{optimal}$$
-
-In this model, it can be shown that minimising regret is equivalent to maximising profit. This motivates the use of BayesUCB to model soft (?) affirmative action policy - it aims to minimise regret by encouraging exploration of the arms, the data gathering allows firms to reduce regret (increase profit). While the firms objective function is essentially unchanged, the re-framing of the problem from one of profit maximisation to regret minimisation enlighten us that in cases where groups have the equal expected productivity, fairness and profit are equivalent objectives.
 \section*{Simulation Results}
 
-\bigskip
+\subsection*{The Unfettered Market}
+
+
+\subsection*{Policy Intervention}
 
 \section*{Discussion}
 
 It should be of course acknowledged, that while each model purports some specific mechanism of discrimination, the true mechanism is likely to be some combination of each.
+
+\citet{LiRaymondBergman2020}: in their paper, the contextual bandit problem utilises many aspects of heterogeneity; it could be seen that in the model presented here, how the UCB algorithm would be able to cover a multitude of aspects to increase fairness such as geography, race, gender, education: hiring such individuals would allow the firm to discern ability from background. (someting about causal inderence in contextual bandits)
+
+Relating to the point on endogeneityof human capital decisions etc: if this were to be implemented in real life, then the algorithm may learn that minorities are lower productivity due to systemic bias. \citet{LiRaymondBergman2020} do not find this to be true. Additionally one could also criticise the UCB algorithm in this case for over exploration: we know that true economic discrimination is hiring
 
 \subsection*{Algorithmic Fairness}
 
