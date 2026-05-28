@@ -1,7 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
+from matplotlib.lines import Line2D
+from pathlib import Path
 from scipy import stats
+from scipy.stats import norm, t
+
+from src.priors import (
+    COLOR_MEAN,
+    COLOR_TIMELINE_BLUE,
+    COLOR_TRUE,
+    PLOT_RC,
+    TRUE_MU,
+    TRUE_VAR,
+    productivity_t_params,
+    x_grid_productivity,
+)
 
 rng = np.random.default_rng(123)
 
@@ -11,22 +25,33 @@ class Workers:
     n_g: int = 2
     mu_p: float = 5.0
     sigma_p: float = 1.0 # Std, not variance
-    mu_res: float = 1.0
+    mu_res: float = 2.0
     sigma_res: float = 0.5 # Std, not variance
     rho: float = 0.25 # Correlation between Productivity and Reservation wage
-    sigma_signal: float = 0.5 # True standard deviation of signal around realised productivity
-    group_1_share: float = 0.1  # fraction of workers in group 1 (minority); group 0 is majority
+    sigma_signal: float = 1.0 # True standard deviation of signal around realised productivity
+    group_shares: np.ndarray = field(default_factory=lambda: np.array([0.9, 0.1], dtype=np.float64))
 
     def __post_init__(self):
-        if not 0.0 <= self.group_1_share <= 1.0:
-            raise ValueError("group_1_share must be in [0, 1]")
+        shares = np.asarray(self.group_shares, dtype=np.float64)
+        if shares.ndim != 1:
+            raise ValueError("group_shares must be a 1D vector")
+        if shares.size < 2:
+            raise ValueError("group_shares must contain at least two groups")
+        if np.any(shares < 0):
+            raise ValueError("group_shares cannot contain negative values")
+        if not np.isclose(shares.sum(), 1.0, atol=1e-10):
+            raise ValueError(f"group_shares must sum to 1.0, got {shares.sum():.8f}")
 
-        n1 = int(round(self.n * self.group_1_share))
-        n1 = min(max(n1, 0), self.n)
-        n0 = self.n - n1
-        self.groups = np.concatenate(
-            [np.zeros(n0, dtype=np.int64), np.ones(n1, dtype=np.int64)]
-        )
+        self.n_g = int(shares.size)
+
+        raw_counts = self.n * shares
+        counts = np.floor(raw_counts).astype(np.int64)
+        deficit = int(self.n - counts.sum())
+        if deficit > 0:
+            order = np.argsort(-(raw_counts - counts))
+            counts[order[:deficit]] += 1
+
+        self.groups = np.repeat(np.arange(self.n_g, dtype=np.int64), counts)
         rng.shuffle(self.groups)
 
         cov_pr = np.array(
@@ -87,22 +112,67 @@ class Firms:
     hierarchical: bool = False # If firms use model expectations using hierarchical bayes
     global_mean: float = 2.0 # Only used if hierarchical == True
 
-    #Posteriors - uncertainty over true distribution is the same for all groups
-    mu_0: np.ndarray = field(default_factory=lambda: np.array([5.0, 5.0]))
-    nu_0: np.ndarray = field(default_factory=lambda: np.array([1.0, 1.0]))
-    alpha_0: np.ndarray = field(default_factory=lambda: np.array([25.0, 2.5]))
-    beta_0: np.ndarray = field(default_factory=lambda: np.array([2.5, 25.0]))
+    # Group composition used for in-class prior construction
+    group_shares: np.ndarray = field(default_factory=lambda: np.array([0.9, 0.1], dtype=np.float64))
 
-    # Posteriors - uncertainty over quality of signal is different
-    # Correctly believe tha signal is unbiased - true mean of signal variation is zero
-    delta_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
-    kappa_0: np.ndarray = field(default_factory=lambda: np.array([2.0, 2.0]))
+    # Optional direct user priors (shape (n_g,)); if None, built from shares.
+    mu_0: np.ndarray | None = None
+    nu_0: np.ndarray | None = None
+    alpha_0: np.ndarray | None = None
+    beta_0: np.ndarray | None = None
+    # Same signal priors by default (but still override-able directly)
+    delta_0: np.ndarray | None = None
+    kappa_0: np.ndarray | None = None
 
     def __post_init__(self):
+        shares = np.asarray(self.group_shares, dtype=np.float64)
+        if shares.ndim != 1:
+            raise ValueError("group_shares must be a 1D vector")
+        if shares.size < 2:
+            raise ValueError("group_shares must contain at least two groups")
+        if np.any(shares <= 0):
+            raise ValueError("group_shares entries must be strictly positive")
+        if not np.isclose(shares.sum(), 1.0, atol=1e-10):
+            raise ValueError(f"group_shares must sum to 1.0, got {shares.sum():.8f}")
+
+        self.n_g = int(shares.size)
+        self._init_priors_from_shares(shares)
+
         self.beliefs = self._init_firm_posteriors(self.n, self.n_g, self.mu_0,
                                                  self.nu_0, self.alpha_0,
                                                  self.beta_0, self.delta_0,
                                                  self.kappa_0)
+
+    def _init_priors_from_shares(self, shares: np.ndarray) -> None:
+        """Build defaults from shares; allow direct array overrides by user."""
+        n_g = int(shares.size)
+        rarity = 1.0 / shares
+        rarity_norm = (rarity - rarity.min()) / (rarity.max() - rarity.min() + 1e-12)
+
+        # Requested initial bounds
+        alpha_default = 4.0 - 2.0 * rarity_norm  # rare -> lower alpha
+        beta_default = 2.0 + 2.0 * rarity_norm   # rare -> higher beta
+
+        def use_or_default(arr: np.ndarray | None, default: np.ndarray, name: str) -> np.ndarray:
+            if arr is None:
+                return default.astype(np.float64)
+            out = np.asarray(arr, dtype=np.float64)
+            if out.shape != (n_g,):
+                raise ValueError(f"{name} must have shape ({n_g},), got {out.shape}")
+            return out
+
+        # Unbiased productivity priors by default
+        self.mu_0 = use_or_default(self.mu_0, np.full(n_g, 5.0), "mu_0")
+        self.nu_0 = use_or_default(self.nu_0, np.full(n_g, 1.0), "nu_0")
+        self.alpha_0 = use_or_default(self.alpha_0, alpha_default, "alpha_0")
+        self.beta_0 = use_or_default(self.beta_0, beta_default, "beta_0")
+        # Same signal priors for all groups by default
+        self.delta_0 = use_or_default(self.delta_0, np.full(n_g, 2.0), "delta_0")
+        self.kappa_0 = use_or_default(self.kappa_0, np.full(n_g, 2.0), "kappa_0")
+
+        # Keep initial alpha/beta in [2, 4]
+        self.alpha_0 = np.clip(self.alpha_0, 2.0, 4.0)
+        self.beta_0 = np.clip(self.beta_0, 2.0, 4.0)
 
     def _init_firm_posteriors(self,
         n_firms: int,
@@ -236,8 +306,7 @@ default_firm_kwargs = {
 
 default_worker_kwargs = {
     "n": 20,
-    "n_g": N_G,
-    "group_1_share": 0.1,
+    "group_shares": np.array([0.9, 0.1], dtype=np.float64),
 }
 
 class Simulation:
@@ -264,8 +333,15 @@ class Simulation:
                 self.fkwargs = firm_kwargs
                 self.wkwargs = worker_kwarg
 
-                self.firms = Firms(**self.fkwargs)
                 self.workers = Workers(**self.wkwargs)
+                self.fkwargs = dict(self.fkwargs)
+                self.fkwargs["group_shares"] = self.workers.group_shares
+                self.firms = Firms(**self.fkwargs)
+                if self.firms.n_g != self.workers.n_g:
+                    raise ValueError(
+                        f"Mismatch groups: Firms.n_g={self.firms.n_g} vs "
+                        f"len(worker group_shares)={self.workers.n_g}"
+                    )
                 self.nw = self.workers.n
                 self.nf = self.firms.n
                 self.ng = self.workers.n_g
@@ -309,7 +385,12 @@ class Simulation:
         self.cand_surplus_log = np.full((T, F, 2), np.nan, dtype=np.float64)
         self.surplus_obtained_log = np.zeros((T, F), dtype=np.float64)
 
-        self.emp_record = np.full((T, 2), np.nan, dtype=np.float64)
+        self.emp_record = np.full((T, G), np.nan, dtype=np.float64)
+        self.employment_rate_log = np.full((T, G), np.nan, dtype=np.float64)
+        self.unemployment_rate_log = np.full((T, G), np.nan, dtype=np.float64)
+        self.pool_sizes = np.bincount(
+            self.workers.groups, minlength=G
+        ).astype(np.int64)
 
         # Cumulative statistics
         self.cum_profit = np.zeros((F, ), dtype=np.float64)
@@ -318,6 +399,14 @@ class Simulation:
 
         self.wage_by_group: dict[int, np.ndarray] | None = None
         self.cdf_by_group: dict[int, tuple[np.ndarray, np.ndarray]] | None = None
+
+        # (period, mu, nu, alpha, beta, source) belief updates by firm and group
+        self._belief_accept_log = {
+            f: {g: [] for g in range(G)} for f in range(F)
+        }
+        self._belief_reject_log = {
+            f: {g: [] for g in range(G)} for f in range(F)
+        }
 
     def match_two_per_firm(self, rng: np.random.Generator) -> np.ndarray:
         """
@@ -363,18 +452,15 @@ class Simulation:
 
 
         if self.ucb:
-            c = 1
+            c = 5
             p_t = 1 - (1 / (self._t + 1)) ** c
             exp_profit_ucb = stats.norm.ppf(p_t, loc=mu, scale=prod_var)
             choice = np.argmax(exp_profit_ucb, axis=1)  # (F,)
-            print(exp_profit_ucb)
         else:
             # Expected productivity of current matched workers is their signal since they believe it is unbiased!
             exp_profit = cand_signal - wage_offer
             choice = np.argmax(exp_profit, axis=1)  # (F,)
-            print(exp_profit)
-
-        
+            
         f = np.arange(self.nf)
 
         self.chosen_worker = pairs[f, choice]     # (F,)
@@ -394,6 +480,8 @@ class Simulation:
             self.accepted,
             self.chosen_prod,
             self.chosen_signal)
+        self._update_priors_from_rejections()
+        self._log_accepted_beliefs()
 
         self._wage_offer = wage_offer          # (F, 2)
         self._cand_prod = cand_prod            # (F, 2)
@@ -419,7 +507,7 @@ class Simulation:
 
         profit = self.cum_profit
 
-        f_idx = profit < -2.5 
+        f_idx = profit < -8
 
         self.firms.beliefs[f_idx, :, I_MU] = self.firms.mu_0
         self.firms.beliefs[f_idx, :, I_NU] = self.firms.nu_0
@@ -429,10 +517,63 @@ class Simulation:
         self.firms.beliefs[f_idx, :, I_DELTA] = self.firms.delta_0
         self.cum_profit[f_idx] = 0
 
-        
+    def _log_accepted_beliefs(self) -> None:
+        """Store group posterior after each accepted hire (for prod_timeline)."""
+        t = self._t
+        for f in range(self.nf):
+            if not self.accepted[f]:
+                continue
+            g = int(self.chosen_group[f])
+            post = self.firms.beliefs[f, g]
+            self._belief_accept_log[f][g].append(
+                (t, post[I_MU], post[I_NU], post[I_ALPHA], post[I_BETA], "accept")
+            )
 
+    def _update_priors_from_rejections(self) -> None:
+        """
+        Learn from rejected offers using truncated-normal moments above current mu.
+        Rejection implies another firm likely offered a higher expected value.
+        """
+        rejected = ~self.accepted
+        firm_idx = np.flatnonzero(rejected)
+        if firm_idx.size == 0:
+            return
 
-        
+        group_idx = self.chosen_group[firm_idx].astype(np.int64)
+        mu = self.firms.beliefs[firm_idx, group_idx, I_MU]
+        nu = self.firms.beliefs[firm_idx, group_idx, I_NU]
+        alpha = self.firms.beliefs[firm_idx, group_idx, I_ALPHA]
+        beta = self.firms.beliefs[firm_idx, group_idx, I_BETA]
+
+        prod_var = beta / (alpha - 1.0)
+        prod_sd = np.sqrt(np.maximum(prod_var, 1e-12))
+
+        # Threshold is the current group mean belief, as per dissertation logic.
+        thresh = mu
+        a = (thresh - mu) / prod_sd
+        b = np.full_like(a, np.inf, dtype=np.float64)
+
+        trunc_mean = stats.truncnorm.mean(a, b, loc=mu, scale=prod_sd)
+        trunc_var = stats.truncnorm.var(a, b, loc=mu, scale=prod_sd)
+        trunc_var = np.maximum(trunc_var, 1e-12)
+
+        nu_post = nu + 1.0
+        mu_post = (mu * nu + trunc_mean) / nu_post
+        alpha_post = alpha + 0.5
+        beta_post = beta + (nu * (trunc_mean - mu) ** 2) / (2.0 * nu_post) + 0.5 * trunc_var
+
+        self.firms.beliefs[firm_idx, group_idx, I_MU] = mu_post
+        self.firms.beliefs[firm_idx, group_idx, I_NU] = nu_post
+        self.firms.beliefs[firm_idx, group_idx, I_ALPHA] = alpha_post
+        self.firms.beliefs[firm_idx, group_idx, I_BETA] = beta_post
+
+        t = self._t
+        for k, f in enumerate(firm_idx):
+            g = int(group_idx[k])
+            self._belief_reject_log[f][g].append(
+                (t, mu_post[k], nu_post[k], alpha_post[k], beta_post[k], "reject")
+            )
+
     def record(self) -> None:
         """Write one period into preallocated logs."""
         t = self._t
@@ -476,10 +617,19 @@ class Simulation:
         #TODO! Make plot for this, where it shows pc of 1s, pc of 0s employed, then % 1's unemp, pc 0s unemp
         # On a graph that obviously always adds up to 1, then shaded in with each colour.
         emp_record = self.workers.groups[self.worker_employer > -0.5]
-        ones = np.sum(emp_record == 1) / self.nw
-        zeros = np.sum(emp_record == 0) / self.nw
-        self.emp_record[t] = [zeros, ones]
-        
+        for g in range(self.ng):
+            self.emp_record[t, g] = np.sum(emp_record == g) / self.nw
+
+        employed_mask = self.worker_employer > -0.5
+        groups = self.workers.groups
+        for g in range(self.ng):
+            n_g = self.pool_sizes[g]
+            if n_g == 0:
+                continue
+            in_g = groups == g
+            emp_rate = float((employed_mask & in_g).sum() / n_g)
+            self.employment_rate_log[t, g] = emp_rate
+            self.unemployment_rate_log[t, g] = 1.0 - emp_rate
 
         # Accepted wage (NaN if rejected)
         self.accepted_wages[t] = np.where(
@@ -681,6 +831,89 @@ class Simulation:
         self.nf = self.firms.n
         self.ng = self.workers.n_g
         self._init_log_buffers()
+
+##################################################################
+#Graphics
+##################################################################
+    def prod_timeline(
+        self,
+        firm_number: int,
+        path: str | Path = "figs/productivity_priors_timeline.png",
+        *,
+        true_mu: float = TRUE_MU,
+        true_var: float = TRUE_VAR,
+        figsize: tuple[float, float] = (12.0, 5.0),
+        dpi: int = 150,
+        n_grid: int = 120,
+        alpha_min: float = 0.08,
+        alpha_gamma: float = 2.5,
+    ) -> Path:
+        """
+        Marginal Student-t after each accepted hire, by group (firm timeline).
+
+        Run simulate() first so ``_belief_accept_log`` is populated.
+        Opacity rises in log-space (geom); most curves stay translucent (alpha_gamma > 1).
+        """
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        true_sd = np.sqrt(true_var)
+        x_grid = x_grid_productivity(true_mu, n_grid)
+        pdf_true = norm.pdf(x_grid, loc=true_mu, scale=true_sd)
+        history_accept = self._belief_accept_log[firm_number]
+        history_reject = self._belief_reject_log[firm_number]
+
+        with plt.rc_context(PLOT_RC):
+            fig, axes = plt.subplots(1, self.ng, figsize=(max(6.0, 4.5 * self.ng), figsize[1]), sharey=True)
+            if self.ng == 1:
+                axes = np.array([axes], dtype=object)
+
+            for ax, g in zip(axes, range(self.ng)):
+                snapshots = list(history_accept[g]) + list(history_reject[g])
+                snapshots.sort(key=lambda x: x[0])
+                n = len(snapshots)
+                # log-spaced opacity: many translucent, only the latest approach alpha=1
+                u = np.linspace(0.0, 1.0, n) ** alpha_gamma
+                alphas = alpha_min + (1.0 - alpha_min) * u if n > 1 else np.array([1.0])
+
+                n_reject = sum(1 for s in snapshots if s[5] == "reject")
+                for i, (_, mu, eta, alpha, beta, source) in enumerate(snapshots):
+                    df, loc, scale = productivity_t_params(mu, eta, alpha, beta)
+                    pdf_t = t.pdf(x_grid, df, loc=loc, scale=scale)
+                    ax.plot(
+                        x_grid, pdf_t,
+                        color=COLOR_TIMELINE_BLUE if source == "accept" else "#e91e63",
+                        lw=1.6,
+                        alpha=float(alphas[i]),
+                    )
+
+                ax.plot(
+                    x_grid, pdf_true,
+                    color=COLOR_TRUE, lw=1.5, ls="--",
+                    label=rf"true $\mathcal{{N}}({true_mu},{true_sd:g})$",
+                )
+                ax.axvline(true_mu, color=COLOR_MEAN, ls=":", lw=1.0, alpha=0.85)
+                y_top = ax.get_ylim()[1]
+                ax.text(
+                    true_mu, 0.55 * y_top, rf"true $\mu={true_mu:g}$",
+                    color=COLOR_MEAN, rotation=90, va="center", ha="right", fontsize=10,
+                )
+                ax.set_xlabel(r"productivity $y$")
+                ax.set_title(rf"group {g} ($n={n}$ updates, {n_reject} reject)")
+                ax.grid(True)
+
+            axes[0].set_ylabel("density")
+            legend_handles = [
+                Line2D([0], [0], color=COLOR_TIMELINE_BLUE, lw=1.8, label="accepted-hire update"),
+                Line2D([0], [0], color="#e91e63", lw=1.8, label="rejection update"),
+                Line2D([0], [0], color=COLOR_TRUE, lw=1.5, ls="--", label=rf"true $\mathcal{{N}}({true_mu},{true_sd:g})$"),
+            ]
+            axes[-1].legend(handles=legend_handles, loc="upper right", framealpha=0.92)
+            fig.suptitle(rf"firm {firm_number}: productivity belief timeline", y=1.02)
+            fig.tight_layout(pad=1.2)
+            fig.savefig(path, dpi=dpi, bbox_inches="tight")
+            plt.close(fig)
+
+        return path
 
 
 if __name__ == "__main__":

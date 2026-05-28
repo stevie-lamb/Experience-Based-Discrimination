@@ -1,6 +1,6 @@
 \documentclass[]{article}
 \usepackage[round]{natbib}
-\usepackage[margin=1in]{geometry}
+%\usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 
@@ -70,33 +70,34 @@ As noted by \citet{LunderbergStartz1983}, models of competitive markets and perf
 \section*{Model}
 
 \subsubsection*{Workers}
+%TODO! Don't forget to add Reservation wages in to the discussion and do bivariate normal distribution!
 
-There are $N_w$ workers in the set of workers $W$, each belonging to a group $G \in g = 1, 2, ..., G$, such that $\bigcup_{g=1}^{G} G_g = W$, and $G_i \cap G_j = \emptyset \quad \forall i, j \in \{1, 2, \dots, G\}$ where $ i \neq j$. 
+There are $N_w$ workers in the set of workers $W$, each belonging to a group $G \in g = 1, 2, ..., G$ with proportion $N_g / N_w$ in the population, such that $\bigcup_{g=1}^{G} G_g = W$, and $G_i \cap G_j = \emptyset \quad \forall i, j \in \{1, 2, \dots, G\}$ where $ i \neq j$. 
 
 \vspace{0.1cm}
 
-Workers have an innate ability, which constitutes their marginal productivity, but is unobservable to firms, and a purely stochastic signal that is observable to the firms. Although workers in the model are heterogeneous, the underlying distributions from which their productivities and signals are drawn are homogenous.
+Workers have an innate ability, which constitutes their marginal productivity, but is unobservable to firms, and a purely stochastic signal that is observable to the firms. 
 
 \begin{center}
-$Productivity \sim \mathcal{N}(\mu_g, \sigma_{pg}^2)$
+Productivity: $x_i \sim \mathcal{N}(\mu_g, \sigma_{pg}^2)$
 	
 	\vspace*{0.2cm}
 	
-	$Signal \sim \mathcal{N}(0, \sigma_{sg}^2)$
+	Signal: $ s_i \sim \mathcal{N}(0, \sigma_{sg}^2)$
 \end{center}
-With a mean of 0, the signal on the workers' productivity is unbiased.
+This signal could represent the qualifications of a worker, or the results of some test set by the employer. Either way, the fact it has non zero variance represents the reality that for some exogenous reasons, the signals observed by employers do not perfectly represent the individual's ability, and therefore productivity. With a mean of 0, the signal on the workers' productivity is unbiased.
 
 Then:
 \begin{center}
-	$Productivity = ability + \epsilon_{pg}$
+	$x_i = \mu_g + \epsilon_{pg}$
 	
 	\vspace{0.2cm}
 	
-	$Signal = Productivity + \epsilon_{sg} = ability + \epsilon_{pg} + \epsilon_{sg}$
+	$s_i = x_i + \epsilon_{sg} = \mu_g + \epsilon_{pg} + \epsilon_{sg}$
 	
 \end{center}
 
-Unlike other models of statistical discrimination, the nature of endogenous learning within the model does not necessitate the groups of workers to be inherently different.
+Each group of workers are assumed to have homogenous distributions of productivities and signals. Unlike other models of statistical discrimination, the nature of endogenous learning within the model does not necessitate the groups of workers to be inherently different; \textit{workers} are heterogeneous, \textit{groups} are homogenous.
 
 Then:
 \begin{center}
@@ -105,75 +106,132 @@ Then:
 	$ \sigma_{sg}^2 = \sigma_s$ \hspace*{0.2cm} $ \forall g$
 \end{center}
 
+This is motivated by the idea of economic discrimination, which has principally been concerned with discrimination between groups which all inherently contain heterogenous individuals, but could be equal on a meta level. The original measurement of discrimination employed by \citet{becker}' sought to observe the lowest productivity individual employed. Here, the data will provide insight in ot wage distributions amongst groups, employment levels, and wage offers.
+
 \subsubsection*{Firms}
 
-Each firm faces a 'Multi Armed Bandit problem; at each time period $t$, the firm matches with a number of prospective employees from the worker group, and they must decide which 'arm' (worker) to employ for the coming period. The firm must pull the arm (employ the worker) that they believe will provide them with the greatest profit. 
+There are $N_f$ firms in the market, each facing a 'Multi Armed Bandit' problem; at each time period $t$, the firm matches with a number of prospective employees from the worker group, and they must decide which 'arm' (worker) to employ for the coming period. The firm must pull the arm (employ the worker) that they believe will provide them with the greatest profit. 
 The problem becomes a 'Contextual Bandit' problem because the firm observes a \textit{feature vector} describing the nature of the prospective workers: they observe both the group they belong to, and the signal on their productivity.
 
-The firm selects worker $i$ to maximise expected profit $\pi$:
+The firms are modelled as \textit{Bayesian Updaters}. The firms model both the distribution of the productivities and signals, and the distributions of the parameters that govern these distributions.
 
 \begin{center}
-	$\operatorname*{argmax}_i \pi = \mathbb{E}(\mu_i) - w_i$
+	Productivity:
+	
+	$p(x_i \mid \mu_g, \sigma_{pg}) \sim \mathcal{N}\left(\mu_g, \sigma_{pg}\right) $
+	
+	$\pi (\mu_g, \sigma_{pg} \mid x_i)  \sim \mathcal{NIG}\left(\mu_{g0}, \eta_{g0}, \alpha_{g0}, \beta_{g0}\right)$
+	\vspace*{0.2cm}
+	
+	Signal:
+	
+	$p(s_i \mid \sigma_{sg}) \sim \mathcal{N}\left(0, \sigma_{pg}\right) $
+	
+	$\pi(\sigma_{sg} \mid x_i) \sim \mathcal{IG}\left(\delta_{g0}, \kappa_{g0}\right)$
 \end{center}
 
-The firms are modelled as \textit{Bayesian Updaters}: they have a prior distribution over both the distribution of productivities, and of signals for each group. If firms were \textit{frequentist}, their expectations would be biased heavily towards the few observations they have. Modelling firms as Bayesian makes sense as they already have a sensible estimate of the distribution of the group's productivity distribution from the outset.
+ For productivity, the firms have uncertainty over both the mean and the variance of the true distribution. This motivates the use of the \textit{Normal Inverse Gamma} distribution, which is a conjugate prior to the normal distribution where there is uncertainty over both the mean and variance parameters. A prior is a \textit{conjugate prior} for a likelihood function if they are in the same parameterised family, that is: $\left\{\pi (\mu_g, \sigma_{pg} \mid x_i),\quad \!\!\! p(x_i \mid \mu_g, \sigma_{pg})\right\} \in \mathcal{F}$, where $\mathcal{F}$ is a closed set \citep{murphy2022}. For the signal they only have uncertainty over the variance, and correctly assume that the signal is unbiased with mean 0; for analogous reasons, the \textit{Inverse Gamma} is used a prior for the distribution of the variance parameter $\left[\text{See Appendix \ref{ap:derivation} for a full explanation and derivation}\right]$.
+ 
+To obtain a 'predictive distribution' for the productivity of the next 
+individual from each group, one can integrate out over the joint 
+posterior. This gives a student's-\textit{t} distribution$^{\ast\dagger}$\citep{ramirezhassan2023}:
+\begin{equation}
+	x^* \mid \mathbf{x} \sim t_{2\alpha_{gn}}\!\left(\mu_{gn},
+	\frac{\beta_{gn}(\eta_{gn}+1)}{\alpha_{gn}\eta_{gn}}\right)
+	\label{eq:predective_prod}
+\end{equation}
+%TODO Sort out indent in footnote.
+\footnote{\noindent$^{\ast}$ Where $\mu_{gn}$ is the posterior belief of $\mu$ for group $g$ in period $n$.\\$^{\dagger}$ The degrees of freedom $2\alpha_{gn}$ increase with the number of observations $n$, so the predictive distribution converges to a Normal as $n \to \infty$.}
+Although the groups have identical parameters, firms have unique hyperparameters (the parameters that determine the shape of the prior distributions) for each worker group; Figure \ref{fig:priors} shows examples of how these hyperparameters lead to differing prior beliefs. 
 
-The firms correctly model productivity and signals as being normally distributed. For productivity, the firms have uncertainty over both the mean and the variance of the true distribution. Then the conjugate prior for this distribution is $NormalInverseGamma$.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth, trim=0pt 0pt 0pt 0pt, clip]{figs/productivity_priors_panel.png}
+	\caption[]{Examples of prior beliefs for varying hyperparameters. The left hand side shows the student's-\textit{t} (predictive) distribution [see Equation \ref{eq:predective_prod}], while the right hand side shows the corresponding Normal Inverse Gamma joint posterior over the mean and variance.}
+	\label{fig:priors}
+\end{figure}
+
+When a firm hires a worker, they observe their productivity, they subsequently update their posterior belief on the productivities and signals from that group:
 
 \begin{center}
-	$P_g | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
-	
-	\vspace{0.2cm}
-	$\mu | \sigma_{pg}^2 \sim \mathcal{N}(\mu_0, \frac{\sigma_{pg}^2}{\eta_0} )$
-	
-	\vspace{0.2cm}
-	$\sigma_{pg}^2 \sim IG(\alpha_0, \beta_0)$
-	
+	$\kappa_{g(n+1)} = \kappa_{gn} + 1$ \\[1ex]
+	$\mu_{g(n+1)} = \dfrac{\kappa_{gn} \mu_{gn} + x}{\kappa_{gn} + 1}$ \\[1ex]
+	$\alpha_{g(n+1)} = \alpha_{gn} + \frac{1}{2}$ \\[1ex]
+	$\beta_{g(n+1)} = \beta_{gn} + \dfrac{\kappa_{gn} (x - \mu_0)^2}{2(\kappa_{g(n+1)})}$
+\end{center}
+We can decompose the updates for $\mu_{g1}$ in to two terms:
+\begin{center} 
+	$$ \mu_{g(n+1)} = \mu_{gn} \left(\frac{\eta_{gn}}{\eta_{gn} + 1}\right) + x_i \left(\frac{1}{\eta_{gn} + 1}\right)$$ 
 \end{center}
 
-\begin{center}
-	$\pi(P_{new}|P, \mu_i, \sigma_{pg}, \alpha_0, \beta_0) = p(P)$
+Which is a weighted average of the prior on the mean of productivity, and the new data observed on the worker $i$ from group $g$. This provides insight in to how the firms belief system works and develops; as the firm observes more data, the prior (posterior) distributions of the hyperparameters become more heavily weighted towards the data observed. Additionally, if the firm have strong priors (that is, $\eta_{g0})$ large), then they will require more data to overcome the prior beliefs about the distribution of the hyperparameters.
 
-\end{center}
+%TODO Need to add some justificaiton /explanation as to why modelling as bayesian as opposed to frequentist is good.
+%If firms were \textit{frequentist}, their expectations would be biased %heavily towards the few observations they have. Modelling firms as %Bayesian makes sense as they already have a sensible estimate of the %distribution of the group's productivity distribution from the outset.
 
-Although the groups have identical parameters, firms have a set of prior distributions, and thus posterior distributions for each worker group.
-
------------------------------------------------------
-Finish Bayesian stuff
-------------------------------------------------------
-
-In the model firms are assumed to have a strong degree of monopsony power; since matches only last one period, workers cannot reject in order to continue search, as they will remain unemployed for that period if they reject. Then firms determine the wage entirely.
+\paragraph{}In the model, firms are assumed to have a strong degree of monopsony power; since matches only last one period, workers cannot reject in order to continue search, as they will remain unemployed for that period if they reject. Then firms determine the wage entirely.
 Firms use a weight average of the expected productivity of an individual, and the observable signal. The weight is determined by the variance of each of these, as given by the firms current posterior distribution. Since the firms update their priors over each group, the wage is determined partly by their group membership: if the firm is uncertain about the group's productivity, they will more heavily weight the signal, and vice versa.
 
 \begin{center}
-	$w_{ig} = \phi * \mathbb{E}[\mu_g] + (1 - \phi) * signal_i$
+	$w_{ig} = \phi * \mathbb{E}[\mu_g] + (1 - \phi) * s_i$
 	
 	\vspace{0.2cm}
-	$\phi = \dfrac{\sigma_{sg}}{\sigma_{sg}  + \sigma_{pg}}$
+	$\phi = \dfrac{\mathbb{E}[\sigma_{sg}]}{\mathbb{E}[\sigma_{sg}]  + \mathbb{E}[\sigma_{pg}]}$
 \end{center}
 Then as $\sigma_{pg} \to \infty, \phi \to 0$ and we put no weight on the group's productivity distribution. While as $\sigma_{pg} \to 0, \phi \to 1$ and we put full weight on the group's productivity because firm believes the productivity of the group has a mass fully centered on the mean.
 
 And because these variances are modelled by Inverse Gamma distributions, we use the expected values of these distributions to obtain the variances, where parameters are updated as in (?).
 
-\begin{center}
-	$\sigma_{sg} = \dfrac{\beta_{post}}{\alpha_{post}}$
+\begin{center} %TODO I dont think this is strictly correct
+	$\mathbb{E}[\sigma_{sg}] = \dfrac{\beta_{gn}}{\alpha_{gn}}$
 	\vspace{0.2cm}
 	
-	$\sigma_{pg} = \dfrac{\delta_{post}}{\kappa_{post}}$
+	$\mathbb{E}[\sigma_{pg}] = \dfrac{\delta_{gn}}{\kappa_{gn}}$
 \end{center}
+
+Utilising the observed information, and posterior distributions over each group, the firms selects worker $i$ to maximise expected profit $\pi$:
+
+\begin{center}
+	$\operatorname*{argmax}_i \pi = \mathbb{E}(\mu_i) - w_i$
+\end{center}
+
+\paragraph*{Rejection} Since workers have no reservation wage (they cannot, matches last one period and thus rejecting offers in pursuit of a better match is nonsensical), all rejections must be because another firm offered a better wage to the worker. Then, even in rejection, the firm learns about the productivity of a worker.
+If Firm A's offer is rejected by the worker, then they know that at least one other firm (Firm B), has offered a better wage. Then 
+\begin{center}
+	$$\phi^\text{A} \cdot \mu^\text{A}_{gn} + \left(1- \phi^\text{A} \right) \cdot s_i < \phi^\text{B} \cdot \mu^\text{B}_{gn} + \left(1- \phi^\text{B} \right) \cdot s_i$$
+	$$\mu_{gn}^\text{B} > \dfrac{\phi^\text{A} \cdot \mu^\text{A}_{gn} + \left[\phi^\text{A} - \phi^\text{B}\right] \cdot s_i}{\phi^\text{B}}
+	$$
+\end{center}
+
+By letting $\phi^\text{A} = \phi^\text{B}$ it is implied that $\mu^\text{B}_{gn} > \mu^\text{A}_{gn}$. Then firms can infer that other firms have had better experiences with individuals from this group; firms update their posterior belief on the group of the individual even when their offer is rejected. While firms do not directly observe the worker's productivity, they can assume that it is drawn from a truncated distribution above $\mpu_{gn}^\text{A}$, and update the posterior based on this information. The specifics of this process is left to Appendix \ref{ap:dataaug}.
 
 \subsubsection*{The Market}
 The timeline of the model is as follows:
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth, trim=50pt 408pt 50pt 60pt, clip]{model_timeline.pdf}
+	\includegraphics[width=1\textwidth, trim=46pt 440pt 50pt 60pt, clip]{model_timeline.pdf}
+	\caption[]{Timeline of the model. Each period t consists of these sequential stages which repeat $\forall$ t $\in$ T.}
 	\label{fig:timeline}
 \end{figure}
 
-Workers exit the market at a rate of $\delta$, at which point they are replaced by a worker of the same group.
+Workers exit the market at a rate of $\delta$, at which point they are replaced by a worker of the same group. Meanwhile, if firms consistently make negative profits, and cumulative profits drop below some threshold $\tau$, then they cease to exist and are replaced by a new firm entering the market.
 
 
-\section*{Simulation Results}
+\section*{Simulations}
+
+Consider the case of two groups in the population $G = \left\{i, j\right\}$ with $N_j/N_w =0.1$, and $N_w = 15,000$ workers, and $N_f =10,000$ Firms. Then group j are the minority in the population of workers. Each firm begins with the same initial priors, which are distinct for each group.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth, trim=0pt 0pt 0pt 0pt, clip]{figs/productivity_priors_defaults_by_group.png}
+	\caption[]{Initial priors for each firm for groups i, j. $\left\{\mu_{i0} = 5, \quad \eta_{i0} = 1, \quad \alpha_{i0} = 4, \quad \beta_{i0} = 2 \right\}; \left\{\mu_{j0} = 5, \quad \eta_{j0} = 1, \quad\alpha_{j0} = 2, \quad \beta_{j0} = 4 \right\}$}
+	\label{fig:initpriors}
+\end{figure} 
+
+For group j, the minority group, the firm will have uninformative priors, while for group i, they will begin with priors that are informative about the true distribution of productivity. That is, the firm are much more confident in their knowledge of the distribution of one group than another. This difference will drive much of the results in the model. Additionally, firms have equally uninformative priors on the signal for all groups. This difference in uncertainty over the productivity of each group are the only differences that create a divergence in wages between groups. 
+
+
+
 
 \subsection*{The Unfettered Market}
 
@@ -194,4 +252,119 @@ A key point that this model provides guidance on is that of Algorithmic Fairness
 
 \bibliography{references}
 \bibliographystyle{plainnat}
+\appendix
+\section{Bayesian Updating derivation}
+\label{ap:derivation}
+\begin{center}
+	$P_g | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
+	
+	\vspace{0.2cm}
+	$\mu | \sigma_{pg}^2 \sim \mathcal{N}(\mu_0, \frac{\sigma_{pg}^2}{\eta_0} )$
+	
+	\vspace{0.2cm}
+	$\sigma_{pg}^2 \sim IG(\alpha_0, \beta_0)$
+	
+\end{center}
+
+\begin{center}
+	$\pi(P_{new}|P, \mu_i, \sigma_{pg}, \alpha_0, \beta_0) = p(P)$
+	
+\end{center}
+The posterior distribution of $\mu, \sigma_{pg}^2$ is as follows:
+\begin{center}
+	$\pi(\mu_g, \sigma_{pg}\mid x) = \dfrac{p(x \mid \mu_g, \sigma_{pg})p(\mu_g, \sigma_{pg})}{p(x)}$
+	\vspace{0.2cm}
+	
+	$\propto	p(x | \mu_g, \sigma_{pg})p(\mu_g, \sigma_{pg})$
+	\vspace{0.2cm}
+	
+	$\propto	p(x \mid \mu_g, \sigma_{pg})p(\mu_g \mid \sigma_{pg})p(\sigma_{pg})$
+\end{center}
+
+Where the prior on the joint probability distribution of the mean and variance of productivity must be decomposed in to a product of conditional and marginal distributions.
+
+\begin{center}
+	$$p(\mu, \sigma^2 \mid x) \underbrace{\propto (2 \pi \sigma_{pg})^{-1/2}
+		\cdot exp((2 \sigma_{pg}^2)^{-1}(x_i - \mu_g)^2)}_{\text{Likelihood of data given $\mu$, $\sigma_{pg}$}}$$
+	$$\underbrace{\cdot (2 \pi \frac{\sigma_{pg}}{\eta_0})^{-1/2} 
+		\cdot exp((2 \frac{\sigma_{pg}}{\eta_0})^{-1}(\mu_g - \mu_0)^2)}_{\text{prior on $\mu_g$, conditional on $\sigma_{pg}$}}$$
+	$$\underbrace{\cdot \dfrac{\beta_0^{\alpha_0}}{\Gamma(\alpha_0)}
+		\cdot (\sigma_{pg})^{-(\alpha_0 + 1)}
+		\cdot exp(-\dfrac{\beta_0}{\sigma_{pg}})}_{\text{prior on $\sigma_{pg}$}}$$
+	
+\end{center}
+
+Then we can remove any normalising terms which do not depend on the unknown parameters, and are thus normalising constants:
+
+\begin{center}
+	$$p(\mu, \sigma^2 \mid x) \propto \left(\frac{1}{\sigma^2}\right)^{\alpha_0 + 2} 
+	\exp\!\left(-\frac{1}{2\sigma^2}\left[(x - \mu)^2 + \kappa_0(\mu - \mu_0)^2 + 2\beta_0\right]\right)$$
+	
+	$$ \propto \left(\frac{1}{\sigma_{pg}^2}\right)^{\frac{1}{2}}
+	\exp(-\frac{1}{2\sigma^2}(x - \mu_{g1})^2)
+	\left(\frac{1}{\sigma_{pg}^2}\right)^{\alpha_1}
+	\exp(-\frac{1}{2\sigma^2}(\mu_g - \mu_{g1})^2)$$
+	
+	
+\end{center}
+
+Where:
+
+\begin{align}
+	\kappa_1 &= \kappa_0 + 1 \\
+	\mu_1 &= \frac{\kappa_0 \mu_0 + x}{\kappa_0 + 1} \\
+	\alpha_1 &= \alpha_0 + \frac{1}{2} \\
+	\beta_1 &= \beta_0 + \frac{\kappa_0 (x - \mu_0)^2}{2(\kappa_0 + 1)}
+\end{align}
+
+We can decompose the updates for $\mu_{g1}$ in to two terms:
+
+\begin{center}
+	$$ \mu_{g1} = \mu_{g0} \left(\frac{\eta_{g0}}{\eta_{g0} + 1}\right) + x_i \left(\frac{1}{\eta_{g0} + 1}\right)$$ 
+\end{center}
+The firm must also model their beliefs about the nature of the signal for each group. It is assumed that the firm correctly believe that the signal is unbiased, as such, updates on the signal only constitute one unknown parameter (the variance).
+
+\begin{center}
+	$x_i | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
+	
+	\vspace{0.2cm}
+	$\sigma_{pg}^2 \sim IG(\delta_{g0}, \kappa_{g0})$
+	
+	
+\end{center}
+%TODO Sort out notation on mus and sigmas, could do superscript for the group and subscript for 0/1 depending on prior / posterior ?
+\begin{center}
+	$\pi(\sigma_{pg}\mid x, \mu_{gs} = 0) = \dfrac{p(x \mid \mu_{gs} = 0, \sigma_{sg})p(\sigma_{sg})}{p(x)}$
+	\vspace{0.2cm}
+	
+	$\propto	p(x \mid \mu_{gs} = 0, \sigma_{sg})p(\sigma_{sg})$
+	\vspace{0.2cm}
+	
+	$$p(\mu, \sigma^2 \mid x) \underbrace{\propto (2 \pi \sigma_{sg})^{-1/2}
+		\cdot exp((2 \sigma_{sg}^2)^{-1}x_i^2)}_{\text{Likelihood of data given $\sigma_{sg}$}}$$
+	$$\underbrace{\cdot \dfrac{\kappa_0^{\delta_0}}{\Gamma(\delta_0)}
+		\cdot (\sigma_{pg})^{-(\delta_0 + 1)}
+		\cdot exp(-\dfrac{\kappa_0}{\sigma_{sg}})}_{\text{prior on $\sigma_{sg}$}}$$
+\end{center}
+
+\begin{align}
+	p(\sigma^2 \mid x) &\propto \left(\frac{1}{\sigma^2}\right)^{1/2}
+	\exp\!\left(-\frac{x^2}{2\sigma^2}\right)
+	\cdot
+	\left(\frac{1}{\sigma^2}\right)^{\alpha_0+1}
+	\exp\!\left(-\frac{\beta_0}{\sigma^2}\right) \\[6pt]
+	&\propto \left(\frac{1}{\sigma^2}\right)^{\alpha_0+3/2}
+	\exp\!\left(-\frac{1}{\sigma^2}\left[\beta_0 + \frac{x^2}{2}\right]\right)
+\end{align}
+
+With updates:
+\begin{center}
+	$$\alpha_1 = \alpha_0 + \frac{1}{2}$$
+	\qquad
+	$$\beta_1 = \beta_0 + \frac{x_i^2}{2}$$
+\end{center}
+\section{Updating Posterior Beliefs Upon Rejection}
+\label{ap:dataaug}
+\section{Robustness checks}
+\label{ap:robustness}
 \end{document}
