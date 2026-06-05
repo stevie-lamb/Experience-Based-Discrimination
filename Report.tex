@@ -1,13 +1,10 @@
 \documentclass[]{article}
 \usepackage[round]{natbib}
-%\usepackage[margin=1in]{geometry}
+\usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 
 \usepackage{graphicx}
-
-
-
 
 %opening
 \title{Experience Based Discrimination: An Agent Based Model}
@@ -15,7 +12,7 @@
 
 \begin{document}
 
-\title{Discrimination through Experience; A Contextual Bandit Problem} %%%%%%%%%%%%
+\title{Employer Learning and Labour-Market Discrimination: An Agent-Based Contextual Bandit Model} %%%%%%%%%%%%
 \author{0783C}
 \date{\today}
 \maketitle
@@ -24,59 +21,88 @@
 \footnotetext{Faculty of Economics, University of Cambridge} %%%%%%%%%%
 
 \begin{abstract}
-	This paper aims to construct an Agent Based Model of the labour market via a contextual bandit problem. The paper seeks to uncover mechanisms by which discrimination in the labour market occurs, and subsequently, policy that can remedy said mechanisms. While the model does not fully explain discrimination in the labour market, reflections upon it's results provide useful insight.
-	
-	The contribution of this paper is to show that by not creating a model of equilibrium, wage distributions can be generated the more realistically replicate empirical reality, and thus provide further insight on the consequences of Experience Based Discrimination
+Although discrimination has been extensively studied in labour markets, the mechanisms by which it operates, and thus the pertinent policies with which to combat it are still debated. To contribute to the discussion, this paper focuses on \textit{Experience Based Discrimination}, whereby firms endogenous hiring decisions create irregularities in learning the true productivity of workers in the market, leading to discrimination. The paper presents an Agent-Based Model (ABM) of the labour market, utilised for it's ability to observe endogenous phenomena in markets. Within the model, there is no inherent difference of innate ability, productivity, or reliability of signals between groups, or any firm-side \textit{taste-based} discrimination. Each firm faces a 'Contextual Bandit' problem, and are modelled as \textit{Bayesian Updaters}, who have posterior beliefs on the worker productivity. When firms are uncertain about the productivity of minority groups, a sharp conclusion is drawn from the results: under a 'baseline' scenario, there is no discrimination in wage or employment level, yet, under an affirmative action 'policy' scenario, discrimination arises endogenously within the model. These initially counter-intuitive results are in line with the economic theory and empirics that oppose such affirmative action policies.
 \end{abstract} %%%%%%%%%
 
-\bigskip
 
-\section*{Introduction}
+\newpage
+\section{Introduction}
 
-Discrimination in the labour market is multi-faceted, and presents itself in many forms. Discrimination can be bare-faced in it's prejudice; it seeps in to the orifices of society, creating differences between groups. Yet these aren't the types of of discrimination usually referred to in economics. Within academic economics, the form of discrimination that matters it the one where individuals with the same productivity are paid differing wages.
+% headers to get me going; stitch together seamlessly later
+% something about eocnomic definition; calibration on equity and efficiency
+%\subsection*{What is the big picture?}
+%\paragraph{Why is it important}
+Discrimination in the labour market is multi-faceted, and presents itself in many forms. Discrimination can be bare-faced in it's prejudice (taste-based discrimination, as in \citet{Becker1957}), but can also be due to inherent differences in groups (statistical discrimination, as in \cite{Arrow1973}). Within economics, discrimination refers to differential treatment for \textit{equal} groups in wages, job assignment, working condition, and promotion, amongst others. While such discrimination in labour markets has been studied via theory and empirics extensively, there is still much discussion over the mechanisms by which discrimination operates, as this holds the key to effective policy.
 
-\section*{Literature Review}
+An example of such policy is 'affirmative action', which either increases the proportion of minorities in the candidate pool (soft affirmative action), or directly employs more minorities (hard affirmative action). The implementation of affirmative action aims to counteract the systemic biases that engender discrimination, and reduce discrimination between groups.
 
-\subsection*{Discrimination}
-\subsubsection*{Theory}
+%\paragraph{What is wrong or broken/what do ew already know}
+Many theoretical models that aim to model the nature of discrimination and relevant policies in labour markets rely on inherent differences between groups to generate discrimination, whether that be innate abilities, or reliability of signals. While some models do consider discrimination arising endogenously within the model (see \citet{CoatesLoury1993}, \citet{LunderbergStartz1983}), groups of individuals are still inherently different in these models. In short, they are unable to consider a world in which individuals are equal, yet discrimination arises. 
 
+\citet{Lepage2024} introduces a model of 'Experience Based Discrimination', which considers how discrimination can arise through endogenous firm experience. LePage hypothesised that positive initial experiences lead to positive biases which endogenously correct themselves due to increases hiring and thus learning, while negative experiences lead to negative biases which lead to a lack of learning, and do not correct themselves. While all individuals are drawn from the same distribution, and firms have unbiased beliefs, firms are more uncertain about minority groups before entering the market, and this ultimately drives discrimination in the model. The paper also presented an empirical section testing these hypotheses, and the findings aligned with the hypotheses. It also supported earlier evidence by \citet{AltonjiPierret2001} who showed that wages depend more on unobservable ability related characteristics than observable signals as they learn more about their employees.
+
+Framing employment decisions as 'hiring as learning' maps elegantly to Contextual Bandit problems, which are a subset of Multi-Armed Bandit (MAB) problems. A MAB in the labour market would consist of firms pulling an arm (hiring an employee), from which they will receive a reward (productivity, minus the wage paid); the firm's objective is to learn which arm to pull to maximise it's reward going forward. MABs are characterised by a trade-off between \textit{exploration} and \textit{exploitation}, the agent can either choose an arm for which it has a greater knowledge of the reward, or explore, to see if the reward is better elsewhere. The Contextual Bandit approach develops this to provide information about each arm (a context vector).
+This is analogous to the firms reality: each arm (potential employee), has a set of observable information consisting of qualifications and characteristics. Consequently, this framework was utilised by \citet{LiRaymondBergman2020}  to evaluate algorithms that explore (Reinforcement Learning) and exploit (Supervised Learning) in hiring decisions. Algorithms that 'explore' are analogous to 'affirmative action' policy, they directly consider hiring more minorities purely because they have observed less employees with such characteristics. The authors find results suggesting that algorithms that explore rather than exploit lead to interviewing employees with a greater likelihood of being hired, while also increasing the proportion of minorities hired, showing that such policy can simultaneously work towards both fairness and profit motivated objectives.
+
+%\subsection*{What am I contributing to the field?}
+
+%\paragraph{How am I going to fix it/ What methods am I using}
+Presenting labour market hiring decisions in this manner is conducive to an ABM where each firm faces a Contextual Bandit problem at each stage. Firms must hire an employee, and based on worker signals, and the information they have about groups so far, choose an 'arm'. The model builds on the narrative of \cite{Lepage2024}, while allowing for a wage distribution in the population, creating new perspective on the results.
+
+%\subsection*{Results}
+%\paragraph{Hypotheses}
+Prior to the simulation, the hypotheses were similar to that of LePage, expecting to find that minorities were discriminated against in a baseline scenario, and that 'affirmative action' policies would be a solution: if firms give greater consideration to minorities, then they should learn more about their true productivities, causing discrimination to cease.
+%\paragraph{Realised results}
+The results however, provide a sharp conclusion: where groups are equal, and signals are unbiased, affirmative action policy exacerbates discrimination of minorities.
+%\paragraph{Why?}
+The underlying mechanism of this result is highly intuitive. If individuals are equally productive, and signals are unbiased, but are uncertain about minorities, and to that end, hire for 'exploration', then firms unknowingly discriminate against the majority group; hiring one group favourably over another is, in the economic sense, inherently discriminatory.
+
+%\paragraph{Roadmap}
+
+Section 2 presents a review of the literature on discrimination, and background information relating to the model. Section 3 presents the model. Section 4 presents the results of the simulation. Section 5 discusses the nature of the results and their consequences in the context of the literature. Section 6 concludes.
+\newpage
+\section{Literature Review and Background}
+
+\subsection{Discrimination}
+\paragraph{Theory}
 \citet{Lepage2024} develops a model of Experience Based Discrimination. The paper, which largely motivates the development of the model presented in this paper, posits that firms are not only uncertain over individual productivities, but also the productivity of the group. Typically economic literature has compartmentalised discrimination into two main categories, \textit{taste-based}, and \textit{statistical} discrimination. The former, associated with Becker (1957), corresponds to discrimination purely because the hiring manager prefers (or dislikes) some group. The latter is predicated on the assumption that firms are not inherently discriminatory, but are discriminatory in practice due to failures in ability to read signals. The Statistical Discrimination literature is associated with the work of \citet{Arrow1973} and \citet{phelpsstat}. Here, discrimination arrives because of \textit{"scarcity of information about the existence and characteristics of workers and jobs"}. Thus, the 'Experience Based Discrimination' is closely related to the statistical discrimination literature. However, there is a large difference, as noted by \citet{Lepage2024}, Statistical Discrimination relies on some inherent difference in the characteristics of groups, while Experience Based Discrimination does not.
 
-Other models such as that of \citet{LunderbergStartz1983} utilise endogenous human capital decisions to engender discrimination; if workers from minority groups expect to receive a lower wage for their efforts, then they will underinvest in human capital, creating a divergence in productivity between groups. The model, however, relies on innate differences on reliability of observable test scores upon which wages are based.
-and \citet{CoatesLoury1993}, show that perverse employer beliefs can cause minority groups  to underinvest in human capital, which creates divergence between group productivities.
+The main form of policy to combat discrimination is \textit{affirmative action} \citet{FershtmanPavan2021} describe soft affirmative action as policies designed to change the composition of the candidate pool, while hard affirmative action requires direct consideration of minority status as part of the consideration. A model by \citet{CoatesLoury1993} shows that such policy can cause minorities to invest less in human capital in a 'patronising equilibrium'.
 
+Other models that utilise endogenous human capital formation is \citet{LunderbergStartz1983} their model shows that if workers from minority groups expect to receive a lower wage for their efforts, then they will underinvest in human capital, creating a divergence in productivity between groups. The model, however, relies on innate differences on reliability of observable test scores upon which wages are based.	
 
-\subsubsection*{Empirics}	
+\paragraph{Evidence}
+
+\citet{AltonjiPierret2001} find evidence of employer learning; as firms observe their employees factors relating to unobserved characteristics relating ot productivity become more prominent in wage determination, and education becomes less prominent. The same paper finds evidence of statistical discrimination in wages.
 
 \citet{LiRaymondBergman2020} use firm-level recruitment data to test ML algorithms in hiring policy. Due to a lack of data on performance, the data objective function is to maximise hiring potential conditional on being interviewed; they find that algorithms that algorithms that understand the trade-off between exploration and exploitation perform much better on metrics of fairness and efficiency of hiring policy than 'supervised' ML algorithms focus on exploitation.
-\citet{Lepage2024} uses an expiremental labour market design to observe experience based discrimination; they too find evidence that endogenous learning can create discrimination.
+
+\citet{Lepage2024} uses an experimental labour market design to observe experience based discrimination; they too find evidence that endogenous learning can create discrimination.
 Both of these papers set up their empirics as a 'Multi-Armed Bandit' problem.
 
-\subsection*{Multi Armed Bandit Problems}
 
-Multi Armed Bandit (MAB) problems have a strong history in economics; MABs are usually applied to problems characterised by a trade-off between exploration and exploitation \citet{BergemannValimaki2006}, that is, executing an action we currently believe to be optimal, versus exploring the action space to understand whether some other action is optimal.
+
+\subsection{Multi Armed Bandit Problems}
+
+Multi Armed Bandit (MAB) problems have a strong history in economics; MABs are usually applied to problems characterised by a trade-off between exploration and exploitation \citep{BergemannValimaki2006}, that is, executing an action we currently believe to be optimal, versus exploring the action space to understand whether some other action is optimal.
 The Contextual bandit problem is similar, but the agent observes a an N-dimensional \textit{feature} vector, providing context over each arm.
+The standard metric to evaluate performance in any Multi-Armed Bandit problem is \textit{regret}, which is the difference between the reward achieved from the optimal arm, and the actual reward realised by the agent \citep{Slivkins2011}.
+\citet{AuerCesaBianchiFischer2002} introduce the \textit{UCB1} algorithm, the algorithm is geared towards playing arms that have been played less in order to better understand the true reward of the arm. \citet{kaufmann2012} extend this idea to the bayesian setting; the \textit{Bayes-UCB} algorithm is more likely to play an arm where there is greater uncertainty over the posterior distribution of rewards for that arm.
 
-\subsection*{Reinforcement Learning}
-
-\bigskip
-
-\subsection*{Agent Based Modelling}
+\subsection{Agent Based Modelling}
 
 As noted by \citet{LunderbergStartz1983}, models of competitive markets and perfect information are unable to explain how discrimination can arise. This is a problem common to many economic models in some capacity, and can only provide treatment of such firm behaviour as an exogenous shock, this has been a great motivation for the literature on Agent Based Models (ABMs). \citet{PangalloDelRioChanona2024} provides a definition of ABMs.XXX and XXX provide examples of ABMs in labour markets. As noted by XXX, ABMs receive plaudits for their ability to explain endogenous behaviour, however mainstream economists tend to avoid them due to the perceived arbitrariness of modelling decisions. 
 
 
+\newpage
+\section{The Model}
 
-\section*{Model}
-
-\subsubsection*{Workers}
-%TODO! Don't forget to add Reservation wages in to the discussion and do bivariate normal distribution!
-
+\subsection{Workers}
 There are $N_w$ workers in the set of workers $W$, each belonging to a group $G \in g = 1, 2, ..., G$ with proportion $N_g / N_w$ in the population, such that $\bigcup_{g=1}^{G} G_g = W$, and $G_i \cap G_j = \emptyset \quad \forall i, j \in \{1, 2, \dots, G\}$ where $ i \neq j$. 
 
 \vspace{0.1cm}
 
-Workers have an innate ability, which constitutes their marginal productivity, but is unobservable to firms, and a purely stochastic signal that is observable to the firms. 
+Workers have an innate ability, which constitutes their marginal productivity, but is unobservable to firms, and a purely stochastic signal, that is observable to the firms. 
 
 \begin{center}
 Productivity: $x_i \sim \mathcal{N}(\mu_g, \sigma_{pg}^2)$
@@ -85,7 +111,7 @@ Productivity: $x_i \sim \mathcal{N}(\mu_g, \sigma_{pg}^2)$
 	
 	Signal: $ s_i \sim \mathcal{N}(0, \sigma_{sg}^2)$
 \end{center}
-This signal could represent the qualifications of a worker, or the results of some test set by the employer. Either way, the fact it has non zero variance represents the reality that for some exogenous reasons, the signals observed by employers do not perfectly represent the individual's ability, and therefore productivity. With a mean of 0, the signal on the workers' productivity is unbiased.
+With a mean of 0, the signal on the workers' productivity is assumed to be unbiased. This signal could represent the qualifications of a worker; or the results of some test set by the employer, non zero signal variance represents the reality that for some exogenous reasons, the signals observed by employers do not perfectly represent the individual's ability, and therefore productivity. 
 
 Then:
 \begin{center}
@@ -97,23 +123,21 @@ Then:
 	
 \end{center}
 
-Each group of workers are assumed to have homogenous distributions of productivities and signals. Unlike other models of statistical discrimination, the nature of endogenous learning within the model does not necessitate the groups of workers to be inherently different; \textit{workers} are heterogeneous, \textit{groups} are homogenous.
-
-Then:
+All workers are drawn from the same distribution, and all signals from the same distribution. Then \textit{workers} are heterogeneous, \textit{groups} are homogenous.
 \begin{center}
 	$\mu_g = \mu$, \hspace*{0.2cm}
 	$ \sigma_{pg}^2 = \sigma_p$,\hspace*{0.2cm}
 	$ \sigma_{sg}^2 = \sigma_s$ \hspace*{0.2cm} $ \forall g$
 \end{center}
 
-This is motivated by the idea of economic discrimination, which has principally been concerned with discrimination between groups which all inherently contain heterogenous individuals, but could be equal on a meta level. The original measurement of discrimination employed by \citet{becker}' sought to observe the lowest productivity individual employed. Here, the data will provide insight in ot wage distributions amongst groups, employment levels, and wage offers.
+Unlike other models of statistical discrimination, the nature of endogenous learning within the model does not necessitate the groups of workers to be inherently different. This is motivated by the idea of economic discrimination, which has principally been concerned with discrimination between groups which all inherently contain heterogenous individuals, but are statistically indistinguishable at the group level.
 
-\subsubsection*{Firms}
+\subsection{Firms}
 
-There are $N_f$ firms in the market, each facing a 'Multi Armed Bandit' problem; at each time period $t$, the firm matches with a number of prospective employees from the worker group, and they must decide which 'arm' (worker) to employ for the coming period. The firm must pull the arm (employ the worker) that they believe will provide them with the greatest profit. 
-The problem becomes a 'Contextual Bandit' problem because the firm observes a \textit{feature vector} describing the nature of the prospective workers: they observe both the group they belong to, and the signal on their productivity.
+\paragraph{The Firms' Problem}There are $N_f$ firms in the market, each facing a MAB problem; at each time period $t$, the firm matches with a number of prospective employees from the worker group, and they must decide which worker to employ for the coming period. The firm must pull the arm (employ the worker) that they believe will provide them with the greatest profit. 
+The problem becomes a 'Contextual Bandit' problem because the firm observes a \textit{context vector} describing the nature of the prospective workers: they observe both the group they belong to, and the signal on their productivity.
 
-The firms are modelled as \textit{Bayesian Updaters}. The firms model both the distribution of the productivities and signals, and the distributions of the parameters that govern these distributions.
+\paragraph{Belief Updates}The firms are modelled as \textit{Bayesian Updaters}. The firms model both the distribution of the productivities and signals, and the distributions of the parameters that govern these distributions.
 
 \begin{center}
 	Productivity:
@@ -130,7 +154,16 @@ The firms are modelled as \textit{Bayesian Updaters}. The firms model both the d
 	$\pi(\sigma_{sg} \mid x_i) \sim \mathcal{IG}\left(\delta_{g0}, \kappa_{g0}\right)$
 \end{center}
 
- For productivity, the firms have uncertainty over both the mean and the variance of the true distribution. This motivates the use of the \textit{Normal Inverse Gamma} distribution, which is a conjugate prior to the normal distribution where there is uncertainty over both the mean and variance parameters. A prior is a \textit{conjugate prior} for a likelihood function if they are in the same parameterised family, that is: $\left\{\pi (\mu_g, \sigma_{pg} \mid x_i),\quad \!\!\! p(x_i \mid \mu_g, \sigma_{pg})\right\} \in \mathcal{F}$, where $\mathcal{F}$ is a closed set \citep{murphy2022}. For the signal they only have uncertainty over the variance, and correctly assume that the signal is unbiased with mean 0; for analogous reasons, the \textit{Inverse Gamma} is used a prior for the distribution of the variance parameter $\left[\text{See Appendix \ref{ap:derivation} for a full explanation and derivation}\right]$.
+Modelling firms beliefs in this way captures the firm's uncertainty over the distributions, which the frequentist approach would not be able to capture. Additionally, the hyperparameters of the posterior distribution means the differing levels uncertainty between groups can be modelled explicitly. Figure \ref{fig:priors} shows how different initial hyperparameters lead to various predictive distributions; if firms are uncertain over the parameters of the distribution, then they are uncertain over the next worker drawn from said distribution.
+
+\begin{figure}[]
+	\centering
+	\includegraphics[width=1\textwidth, trim=0pt 0pt 0pt 0pt, clip]{figs/productivity_priors_panel.png}
+	\caption[]{Examples of prior beliefs for varying hyperparameters. The left hand side shows the student's-\textit{t} (predictive) distribution [see Equation \ref{eq:predective_prod}], while the right hand side shows the corresponding Normal Inverse Gamma joint posterior over the mean and variance.}
+	\label{fig:priors}
+\end{figure}
+
+Firms correctly assume that worker productivity is drawn from normal distributions, but have uncertainty over both mean and variance. This motivates the use of the \textit{Normal Inverse Gamma} distribution as the joint prior for mean and variance, which is a conjugate prior to the normal distribution where there is uncertainty over both the mean and variance parameters$^*$. \footnote{$^*$A prior is a \textit{conjugate prior} for a likelihood function if they are in the same parameterised family, that is: $\left\{\pi (\mu_g, \sigma_{pg} \mid x_i),\quad \!\!\! p(x_i \mid \mu_g, \sigma_{pg})\right\} \in \mathcal{F}$, where $\mathcal{F}$ is a closed set \citep{murphy2022}}. For the signal they only have uncertainty over the variance, and correctly assume that the signal is unbiased with mean 0; for analogous reasons, the \textit{Inverse Gamma} is used a prior for the distribution of the variance parameter $\left[\text{See Appendix \ref{ap:derivation} for a full explanation and derivation}\right]$.
  
 To obtain a 'predictive distribution' for the productivity of the next 
 individual from each group, one can integrate out over the joint 
@@ -141,24 +174,24 @@ posterior. This gives a student's-\textit{t} distribution$^{\ast\dagger}$\citep{
 	\label{eq:predective_prod}
 \end{equation}
 %TODO Sort out indent in footnote.
-\footnote{\noindent$^{\ast}$ Where $\mu_{gn}$ is the posterior belief of $\mu$ for group $g$ in period $n$.\\$^{\dagger}$ The degrees of freedom $2\alpha_{gn}$ increase with the number of observations $n$, so the predictive distribution converges to a Normal as $n \to \infty$.}
-Although the groups have identical parameters, firms have unique hyperparameters (the parameters that determine the shape of the prior distributions) for each worker group; Figure \ref{fig:priors} shows examples of how these hyperparameters lead to differing prior beliefs. 
+\noindent\footnote{\noindent$^{\ast}$ Where $\mu_{gn}$ is the posterior belief of $\mu$ for group $g$ in period $n$.\\$^{\dagger}$ The degrees of freedom $2\alpha_{gn}$ increase with the number of observations $n$, so the predictive distribution converges to a Normal as $n \to \infty$.}
+Although the groups have identical parameters, firms have unique hyperparameters (the parameters that determine the shape of the prior distributions) for each worker group.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=1\textwidth, trim=0pt 0pt 0pt 0pt, clip]{figs/productivity_priors_panel.png}
-	\caption[]{Examples of prior beliefs for varying hyperparameters. The left hand side shows the student's-\textit{t} (predictive) distribution [see Equation \ref{eq:predective_prod}], while the right hand side shows the corresponding Normal Inverse Gamma joint posterior over the mean and variance.}
-	\label{fig:priors}
-\end{figure}
-
-When a firm hires a worker, they observe their productivity, they subsequently update their posterior belief on the productivities and signals from that group:
+When a firm hires a worker, they observe their productivity, $x_i$, and subsequently update their posterior belief on the productivities and signals from that group:
 
 \begin{center}
-	$\kappa_{g(n+1)} = \kappa_{gn} + 1$ \\[1ex]
-	$\mu_{g(n+1)} = \dfrac{\kappa_{gn} \mu_{gn} + x}{\kappa_{gn} + 1}$ \\[1ex]
+	$\eta_{g(n+1)} = \eta_{gn} + 1$ \\[1ex]
+	$\mu_{g(n+1)} = \dfrac{\kappa_{gn} \mu_{gn} + x_i}{\kappa_{gn} + 1}$ \\[1ex]
 	$\alpha_{g(n+1)} = \alpha_{gn} + \frac{1}{2}$ \\[1ex]
-	$\beta_{g(n+1)} = \beta_{gn} + \dfrac{\kappa_{gn} (x - \mu_0)^2}{2(\kappa_{g(n+1)})}$
+	$\beta_{g(n+1)} = \beta_{gn} + \dfrac{\kappa_{gn} (x_i - \mu_0)^2}{2(\kappa_{g(n+1)})}$
 \end{center}
+These posterior beliefs becomes the prior beliefs for the next period, when beliefs are updated again. Refer to Figure \ref{fig:priors} to see how these hyperparameters feed in to different distributions. If observed productivities are below the mean, then the predictive distribution will be skewed to the left, if values differ greatly from the prior belief on the mean, then $\beta$ will be large, leading to greater predicted variance.
+Similarly, for a signal $s_i$:
+
+\begin{align}
+	\kappa_{g(n+1)} &= \kappa_{gn} + \frac{1}{2} \\[6pt]
+	\delta_{g(n+1)} &= \delta_{gn} + \frac{(s_i - x_i)^2}{2}
+\end{align}
 We can decompose the updates for $\mu_{g1}$ in to two terms:
 \begin{center} 
 	$$ \mu_{g(n+1)} = \mu_{gn} \left(\frac{\eta_{gn}}{\eta_{gn} + 1}\right) + x_i \left(\frac{1}{\eta_{gn} + 1}\right)$$ 
@@ -166,11 +199,7 @@ We can decompose the updates for $\mu_{g1}$ in to two terms:
 
 Which is a weighted average of the prior on the mean of productivity, and the new data observed on the worker $i$ from group $g$. This provides insight in to how the firms belief system works and develops; as the firm observes more data, the prior (posterior) distributions of the hyperparameters become more heavily weighted towards the data observed. Additionally, if the firm have strong priors (that is, $\eta_{g0})$ large), then they will require more data to overcome the prior beliefs about the distribution of the hyperparameters.
 
-%TODO Need to add some justificaiton /explanation as to why modelling as bayesian as opposed to frequentist is good.
-%If firms were \textit{frequentist}, their expectations would be biased %heavily towards the few observations they have. Modelling firms as %Bayesian makes sense as they already have a sensible estimate of the %distribution of the group's productivity distribution from the outset.
-
-\paragraph{}In the model, firms are assumed to have a strong degree of monopsony power; since matches only last one period, workers cannot reject in order to continue search, as they will remain unemployed for that period if they reject. Then firms determine the wage entirely.
-Firms use a weight average of the expected productivity of an individual, and the observable signal. The weight is determined by the variance of each of these, as given by the firms current posterior distribution. Since the firms update their priors over each group, the wage is determined partly by their group membership: if the firm is uncertain about the group's productivity, they will more heavily weight the signal, and vice versa.
+\paragraph{Wage Determination}Firms use a weight average of the expected productivity of an individual, and the observable signal. The weight is determined by the variance of each of these, as given by the firms current posterior distribution. Since the firms update their priors over each group, the wage is determined partly by their group membership: if the firm is uncertain about the group's productivity, they will more heavily weight the signal, and vice versa.
 
 \begin{center}
 	$w_{ig} = \phi * \mathbb{E}[\mu_g] + (1 - \phi) * s_i$
@@ -182,189 +211,452 @@ Then as $\sigma_{pg} \to \infty, \phi \to 0$ and we put no weight on the group's
 
 And because these variances are modelled by Inverse Gamma distributions, we use the expected values of these distributions to obtain the variances, where parameters are updated as in (?).
 
-\begin{center} %TODO I dont think this is strictly correct
-	$\mathbb{E}[\sigma_{sg}] = \dfrac{\beta_{gn}}{\alpha_{gn}}$
+\begin{center}
+	$\mathbb{E}[\sigma_{sg}] = \dfrac{\beta_{gn}}{\alpha_{gn} - 1}$
 	\vspace{0.2cm}
 	
-	$\mathbb{E}[\sigma_{pg}] = \dfrac{\delta_{gn}}{\kappa_{gn}}$
+	$\mathbb{E}[\sigma_{pg}] = \dfrac{\delta_{gn}}{\kappa_{gn} - 1}$
 \end{center}
 
-Utilising the observed information, and posterior distributions over each group, the firms selects worker $i$ to maximise expected profit $\pi$:
+%TODO Move this but needs to go somewhere
+While \citet{Lepage2024} does not include signals in their model, they are essential here: if the firm cannot observe any signal, they must onyl use group information, yet if the signal perfectly conveyed productivity, the the context of the group information would be redundant. The unbiased bt varying signal creates an uncertainty which requires them to balance both the signal and group information.
+
+\paragraph{Monopsony} In the model, it is assumed that firms can set wages due to a strong degree of monopsony power; since matches only last one period, workers will not reject in order to continue search. However, firms do not have full power, and thus wages cannot be driven down to 0 (or the minimum wage). The exact degree of monopsony power is determined by the number of matches each firm has in a period$^*$\footnote{$^*$The number of matches is a parameter of the model which can be tweaked; it is set to two for the primary simulation from which results are presented}. Then wages fluctuate in a manner similar to that of  A larger number of matches means that, as in the concept of \textit{Nash Bargaining}, firms can play worker's off of each other and charge a lower wage; more matches essentially drives competition between workers, lowering the wage. Conversely, while the number of workers in the market decreases, firms' monopsony power decreases, as they face greater competition for the workers; if all workers match with two firms, then with less workers firms face a greater degree of competition from other firms. While this isn't explicitly modelled in the wage function, the behaviour arises endogenously within the model; as in \citet{BurdettMortensen1998}, the degree of \textit{market tightness} has an effect over the monopsony power, and thus wages.
+
+\newpage
+
+\paragraph{Hiring Decision}Utilising the observed information, and posterior distributions over each group, the firms selects worker $i$ to maximise expected profit $\pi$, which is the signal minus wage, since the signal is unbiased:
 
 \begin{center}
-	$\operatorname*{argmax}_i \pi = \mathbb{E}(\mu_i) - w_i$
+	$\operatorname*{argmax}_i \mathbb{E}[\pi] = s_i - w_i$
 \end{center}
 
-\paragraph*{Rejection} Since workers have no reservation wage (they cannot, matches last one period and thus rejecting offers in pursuit of a better match is nonsensical), all rejections must be because another firm offered a better wage to the worker. Then, even in rejection, the firm learns about the productivity of a worker.
-If Firm A's offer is rejected by the worker, then they know that at least one other firm (Firm B), has offered a better wage. Then 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth, trim=0pt 40pt 0pt 0pt, clip]{firm_decision.pdf}
+	\caption{Demonstrative toy example of a firms 'Contextual Bandit' problem; they face two candidates from different groups; they utilise past information and current signals to determine a wage, and select the candidate offering the highest expected profit.}
+\end{figure}
+
+\paragraph{Rejection} Since workers have no reservation wage (they cannot, due to matches dissipating after one period), all rejections must be because another firm offered a better wage to the worker. Then, even in rejection, the firm learns about the productivity of a worker.
+If Firm A's offer is rejected by the worker, then they know that at least one other firm (Firm B), has offered a better wage. Then, utilising the information that both firms observed the same signals: 
 \begin{center}
 	$$\phi^\text{A} \cdot \mu^\text{A}_{gn} + \left(1- \phi^\text{A} \right) \cdot s_i < \phi^\text{B} \cdot \mu^\text{B}_{gn} + \left(1- \phi^\text{B} \right) \cdot s_i$$
 	$$\mu_{gn}^\text{B} > \dfrac{\phi^\text{A} \cdot \mu^\text{A}_{gn} + \left[\phi^\text{A} - \phi^\text{B}\right] \cdot s_i}{\phi^\text{B}}
 	$$
 \end{center}
 
-By letting $\phi^\text{A} = \phi^\text{B}$ it is implied that $\mu^\text{B}_{gn} > \mu^\text{A}_{gn}$. Then firms can infer that other firms have had better experiences with individuals from this group; firms update their posterior belief on the group of the individual even when their offer is rejected. While firms do not directly observe the worker's productivity, they can assume that it is drawn from a truncated distribution above $\mpu_{gn}^\text{A}$, and update the posterior based on this information. The specifics of this process is left to Appendix \ref{ap:dataaug}.
+By letting $\phi^\text{A} = \phi^\text{B}$ it is implied that $\mu^\text{B}_{gn} > \mu^\text{A}_{gn}$$^*$\footnote{$^*$ This is equivalent to the firm just assuming the other firm has an equal level of uncertainty}. Then firms can infer that other firms believe that individuals from this group have greater productivity than the firm currently expects; firms update their posterior belief on the group of the individual even when their offer is rejected. While firms do not directly observe the worker's productivity, they can assume that it is drawn from a truncated distribution above $\mu_{gn}^\text{A}$, and update the posterior based on this information [see Appendix \ref{ap:dataaug}].
 
-\subsubsection*{The Market}
+\subsection{The Market}
 The timeline of the model is as follows:
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=1\textwidth, trim=46pt 440pt 50pt 60pt, clip]{model_timeline.pdf}
 	\caption[]{Timeline of the model. Each period t consists of these sequential stages which repeat $\forall$ t $\in$ T.}
 	\label{fig:timeline}
 \end{figure}
 
-Workers exit the market at a rate of $\delta$, at which point they are replaced by a worker of the same group. Meanwhile, if firms consistently make negative profits, and cumulative profits drop below some threshold $\tau$, then they cease to exist and are replaced by a new firm entering the market.
+Workers exit the market at a rate of $\delta$, at which point they are replaced by a worker of the same group. Meanwhile, if firms consistently make negative profits, and cumulative profits drop below some threshold $\tau$, then they cease to exist and are replaced by a new firm entering the market. Additionally, there is assumed to be a minimum wage $r$.
 
+\paragraph{Policy Intervention}
 
-\section*{Simulations}
+Here, policy intervention takes the form of affirmative action; under the policy, firms give are more likely to sample an arm for which it has greater uncertainty over the reward distribution. While the algorithm is agnostic towards either the majority or minority group, the initial priors lead to greater sampling from the minority group. 
+Here, this policy is modelled using BayesUCB \citep{kaufmann2012}. This utilises the uncertainty deriving from the posterior beliefs over each group. Since firms begin with greater uncertainty over the minority group, and sample from them less; this should lead to firms 'exploring' the minority group rather than 'exploiting' the majority group.
 
-Consider the case of two groups in the population $G = \left\{i, j\right\}$ with $N_j/N_w =0.1$, and $N_w = 15,000$ workers, and $N_f =10,000$ Firms. Then group j are the minority in the population of workers. Each firm begins with the same initial priors, which are distinct for each group.
+\noindent The implementation of this policy in the model can be described as follows:
 
-\begin{figure}[htbp]
+\begin{equation}
+	s_{g} \;=\; \sqrt{\dfrac{\beta_{g}}{\nu_{g}\,(\alpha_{g}-1)}}.
+	\label{eq:epistemic_sd}
+\end{equation}
+% Time-varying BayesUCB quantile level (no time decay in practice: it is
+% clipped between a floor and a cap, so exploration shrinks only through s_g).
+\begin{equation}
+	p_t \;=\; \Big(1 - (t+1)^{-c}\Big),
+	\qquad c = 25
+	\label{eq:ucb_quantile}
+\end{equation}
+% Upper-confidence index: the p_t-quantile of the posterior-mean productivity,
+% using the Gaussian inverse CDF \Phi^{-1}.
+\begin{equation}
+	q_{j} \;=\; \mu_{g(j)} \;+\; s_{g(j)}\,\Phi^{-1}(p_t),
+	\qquad
+	\pi^{\mathrm{UCB}}_{j} \;=\; q_{j} - w_{j}.
+	\label{eq:ucb_index}
+\end{equation}
+% Arm choice: same-group pairs share group beliefs, so q_j differs only by
+% wage; the firm then falls back to the myopic (signal - wage) rule.
+\begin{equation}
+	j^{\star} \;=\;
+	\begin{cases}
+		\displaystyle \operatorname*{arg\,max}_{j\in\{0,1\}} \big(s_j - w_j\big),
+		& \text{if } g(0) = g(1),\\[2.2ex]
+		\displaystyle \operatorname*{arg\,max}_{j\in\{0,1\}} \pi^{\mathrm{UCB}}_{j},
+		& \text{otherwise.}
+	\end{cases}
+	\label{eq:ucb_choice}
+\end{equation}
+
+This can be thought of as affirmative action, since firms give greater direct consideration to those groups which it has more uncertainty over. The strength of the policy is given by the $c$ parameter$^*$\footnote{$^*$It is also clipped to $\in \left[0.5, 0.95\right]$; the minimum bound is the neutral case, while the upper bound prevents any extreme policy}, which increases the weight on the standard deviation of the posterior. Additionally, if the firm is faced with two individuals from the same group, then this algorithm is not necessary since they share posterior distributions over productivity.
+
+\paragraph{Regret} Regret is the difference between the outcome of the arm that an 'oracle' would have chosen, and the realised outcome of the firm. 
+\begin{equation}
+	\mathbb{E}\left[\mathcal{R}\right] = \pi \left(j^*\right) - \pi \left(j_\text{0}\right)
+\end{equation}
+
+Here, the notions of regret minimisation and profit maximisation are equivalent. Then the BayesUCB algorithm, which serves to reduce regret, should simultaneously increase firms' profit, and tackle discrimination between groups.
+
+\paragraph{Model Parameters}
+
+Consider the case of two groups in the population $G = \left\{i, j\right\}$ with $N_j/N_w =0.1$, and $N_w = 15,000$ workers, and $N_f =10,000$ Firms. Then group j are the minority in the population of workers. Each firm begins with the same initial priors, which are distinct for each group, and there is a minimum wage of 2.
+
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=1\textwidth, trim=0pt 0pt 0pt 0pt, clip]{figs/productivity_priors_defaults_by_group.png}
 	\caption[]{Initial priors for each firm for groups i, j. $\left\{\mu_{i0} = 5, \quad \eta_{i0} = 1, \quad \alpha_{i0} = 4, \quad \beta_{i0} = 2 \right\}; \left\{\mu_{j0} = 5, \quad \eta_{j0} = 1, \quad\alpha_{j0} = 2, \quad \beta_{j0} = 4 \right\}$}
 	\label{fig:initpriors}
 \end{figure} 
 
-For group j, the minority group, the firm will have uninformative priors, while for group i, they will begin with priors that are informative about the true distribution of productivity. That is, the firm are much more confident in their knowledge of the distribution of one group than another. This difference will drive much of the results in the model. Additionally, firms have equally uninformative priors on the signal for all groups. This difference in uncertainty over the productivity of each group are the only differences that create a divergence in wages between groups. 
+For group j, the minority group, the firm will have uninformative priors, while for group i, they will begin with stronger priors on the true distribution of productivity. That is, the firm are much more confident in their knowledge of the distribution of one group than another. Additionally, firms have equally uninformative priors on the signal for all groups. Uninformative priors for the 'minority' group lead to strong initial updates for this group. This methodology is consistent with the findings of \citet{bensonlepage2024}, who show that hiring managers update their beliefs particularly strongly for minority workers.
+\newpage
+\section{Results}
 
+This section presents the results of the simulation; since this is a simulation, the policy and baseline scenarios represent counterfactual scenarios which allow for direct comparisons.
 
+\paragraph*{Wage Outcomes}
+Under the baseline, there is very little difference in the empirical wage distribution between the groups. Yet, under the policy, minorities end up with a much lower mean wage, and with greater variance in wages, too.
 
+\begin{figure}[]
+		\centering
+		\includegraphics[width=1\textwidth]{figs/wage_cdf_policy_over_baseline.png}
+		\caption[]{Wage CDF of each group; data is pooled after a burn-in period of t=100. The upper plot shows CDF under the policy, while the lower shows the CDF under the baseline.}
+		\label{fig:base_cdf}
+\end{figure}
 
-\subsection*{The Unfettered Market}
+\input{results/table_wage_distribution_moments_by_group.tex}
+Table %include reference
+1 shows the empirical moments, where data is pooled after a burn in of 100 periods. It shows that under the policy, there is a much greater difference between the mean wage amongst each group, and greater variance under the policy. These facts match the empirical reality. Additionally, Figure \ref{fig:base_cdf} shows the empirical wage distribution visually; the wage CDF for group 0 first order stochastically dominates the wage CDF for the minority group, indicating that minorities can expect a lower wage than their majority group counterparts no matter where they lie in the productivity distribution
 
+\paragraph{Market Outcomes}
+Minorities are employed at a lower rate than those from the majority group under the policy, while they are employed similarly under the baseline.
 
-\subsection*{Policy Intervention}
+\input{results/table_final-period_employment_rate_by_group_policy_baseline.tex}
 
-\section*{Discussion}
+\paragraph{Employer Beliefs}
+Additionally, firms do not learn the true distribution of the group; being faced with $n > 1$ workers at each stage increases the likelihood of them hiring a worker greater than the true mean of the worker distribution. 
+
+\input{results/table_final_belief_quantiles_by_group.tex}
+
+Table % input ref
+3 shows percentiles of beliefs on each group, under both the policy and baseline scenarios. It shows that, under the baseline scenario, while firms still hold lower beliefs on minorities in general, the difference is much lower than in the policy scenario. 
+
+\paragraph{Employer Experience}
+
+The main hypotheses of \citet{Lepage2024}, which inspired the development of this model, is that firms who have an initial bad experience of a minority employee (low productivity) will never learn the true distribution of the minority group's productivity, their posterior beliefs fall below the true distribution of the group, and because they then expect lower productivity from this group, they no longer employ from them. Conversely, firms who have a positive initial experience do learn the true distribution because they continue to sample from that group with their high expectations.
+These hypotheses do not hold in this simulation; in LePage's model, there is a market clearing wage for each group, then any individual with an expected productivity below that wage is left unemployed. While in this simulation, the wage's are idiosyncratic to each firm, and depend on the firm's current posterior beliefs and on the productivities and signals of each worker; if a firm expects lower productivity, then their monopsonistic power allows them to simply offer a lower wage.
+
+\begin{figure}[]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/timeline_pair_firm9842_mu4.89.png}
+	\caption[]{Development of the employer beliefs about each group for a single firm. Updates from actually learning about an individuals productivity by employing them is shown in blue, while updates from being rejected are shown in red. The most recent beliefs are the bold curves.}
+	\label{fig:employer_exp}
+\end{figure}
+
+Figure \ref{fig:employer_exp} shows the updates for a single firm. In the policy scenario, the beliefs for minorities reflect the actual distribution, but are ultimately much lower for the minority group than the majority group, while under the baseline scenario, the final posterior beliefs for this firm are similar for both groups.
+
+\paragraph*{Equity}
+% can we look at how many wages were achieved by each group under each scenario? 
+% We could also look at total welfare (include profit) to see which scenario is welfare improving
+% Table of how much each worker was sampled.
+% Then in the discussion we can have a small section on normative vs positive statements; these stats do not consider that the increase in wages may mean more to some etc (strength of impetus)
+
+\paragraph*{Regret}
+\begin{figure}[]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/cumulative_regret.png}
+	\caption[]{Regret under the baseline}
+	\label{fig:cum_reget}
+\end{figure}
+\newpage
+\section{Discussion}
+
+The results of this model contribute to the side of the literature that suggests that such 'affirmative action' policies are simultaneously inefficient and inequitable. Although the BayesUCB algorithm is essentially agnostic to the notion of a minority group, it gives precedence to that group purely because firms have greater uncertainty about them. Yet, because the minorities are statistically indistinguishable (in the model) at the group level, the results are intuitive. By the economic definition of discrimination, such a policy unfairly discriminates against the majority group. While there is some empirical evidence that affirmative action does exacerbate discrimination, as in \citet{aganstarr2018}, who provide such evidence on 'Ban the Box' policies. This policy prevents firms from asking whether an individual has a criminal history, and, as in the model, they fall back on 'group beliefs'; firms hypothesise over the likelihood of a prospective employee having a criminal record, and since minorities are empirically more likely to have a criminal history, call back rates amongst minorities falls massively. Yet, there are swathes of evidence showing that 'affirmative action' does work: the findings of \citet{LiRaymondBergman2020} show that exploratory algorithms such as \textit{UCB} allow objectives of fairness and profit to coalesce. 
+
+But the context is important. \citet{LiRaymondBergman2020} comes from firm-level data at a Fortune 500 company, where many in the applicant pool were had attended University, or obtained a Master's or PhD, while \citet{aganstarr2018}'s experimental design is targeted at low-skilled entry-level jobs, which bears similarity to the model presented here. It is plausible that different areas of the market demand different policy; in higher skilled jobs, where the is room for signals to be biased downwards, affirmative action could be necessary to account for systemic biases, while for low skilled jobs where individuals are likely to have equivalent signals and productivities, that affirmative action can exacerbate discrimination. 
+
+The findings suggest that signals must be downward biased for affirmative action to be effective; if individuals have the same productivity, affirmative action cannot be equitable in an economic sense, even if it is equitable morally. 
+
+ Then these results highlight some truths of labour markets while it is a known fact that minorities achieve lower education, and also lower wages, one could conclude from this evidence that such policies serve to exacerbate biases that have long existed in western nations, it is then my conviction that policy is best placed in the sphere of education.
+
+Such systemic biases that cause differences in wage gaps also exist in the education sphere, and levelling educational outcomes between groups would do the best service to reducing discrimination between them. 
+
+% Results relatin to downward biased signals
+It is clear that under downward biased signals, the affirmative action policy somewhat remedies the discrimination against minorities, by increasing the percentage with which they are hired, and also increasing total wages amongst workers, and increasing total welfare in the economy. It also reduces regret. However,there is sitll a discrepancy between the wage distributions of each grup, which is still exacerbated by the policy.
+
+While empirical evidence is able to guide us on changes in equity via rates at which minorities are employed, the nature of the empirical studies is unable to assess changes in wages resulting from the affirmative action.
+
+One can also challenge the notion of equity which we mean. While individuals are equal, the policy is aids in the equality of the process, that is, giving all individuals a fair chance (yet to that end, affirmative action in education is necessary), yet equality of outcomes is still not satisfied, and in this vein, we do not have horizontal equity.
+
+\paragraph*{Online vs Offline Learning}
+The issue is that nature of the problem is one of \textit{online} learning. That is, the firm must explore the space as it competes in the market; they cannot learn the best strategy before the 'game', and then implement this policy going forward. The BayesUCB algorithm fails to reduce regret because the firm needs to go through a period of hiring from both groups to understand both distributions; yet as they do this they over-hire from the minority group. As is depicted in figure \ref{fig:employer_exp}, BayesUCB causes firms to hire minorities that are lower productivity than the majority group counterpart, which actually leads them to have lower expectations than they otherwise would. This serves to exacerbate their belief system two fold: they hire lower productivity workers, who perform worse, which reduces their beliefs; and they only hire majority group workers when their signals are strong enough to outperform the minority with the exploration bonus, this means they only sample the best from the majority group which serves to greatly amplify beliefs there.
+
+BayesUCB is unable to reduce regret here because of added complications of the model. The original paper by \citet{kaufmann2012} critically assumes that rewards are independently identically distributed, and also independent of the prior distributions of the firms, yet this second assumption is violated in this model. The reward is inherently linked to the reward of the arm; since the firm's beliefs are integral to wage determination, and hence the profit (reward) that an arm will give$^*$. \footnote{$^*$Perhaps it is not too far to stretch that some hiring managers understand this relationship, although this possibility is not modelled.} This then suggests that policy needs to take some other form
+
+\paragraph*{Endogenous Human Capital Formation}
+It is an empirical reality that minorities achieve lower education, which could perhaps explain statistical discrimination. Although the concept is somewhat trivialised, models of 'endogenous human capital formation' suc as those of \citet{CoatesLoury1993} and \citet{LunderbergStartz1983} can serve to explain this reality. The former suggests that the affirmative action itself creates a 'patronising equilibrium' that causes minorities to invest less in human capital, while the latter suggests that it is the wage discrimination itself that causes minorities to invest less in human capita;. if they expect a lower wage, then they are likely to become less educated, this would lead to a lowered productivity distribution, which would feed in to the beliefs of firms, creating a 'death spiral' type mechanism.
+
+Endogenous human capital formation is not modelled here, as it would only serve to exacerbate the results under the policy scenario, and the purpose of the model is to identify a channel through which discrimination occurs when there is no inherent difference between groups.
+\paragraph*{Other}
 
 It should be of course acknowledged, that while each model purports some specific mechanism of discrimination, the true mechanism is likely to be some combination of each.
 
-\citet{LiRaymondBergman2020}: in their paper, the contextual bandit problem utilises many aspects of heterogeneity; it could be seen that in the model presented here, how the UCB algorithm would be able to cover a multitude of aspects to increase fairness such as geography, race, gender, education: hiring such individuals would allow the firm to discern ability from background. (someting about causal inderence in contextual bandits)
+\citet{LiRaymondBergman2020}: in their paper, the contextual bandit problem utilises many aspects of heterogeneity; it could be seen that in the model presented here, how the UCB algorithm would be able to cover a multitude of aspects to increase fairness such as geography, race, gender, education: hiring such individuals would allow the firm to discern ability from background. (something about causal inference in contextual bandits)
 
-Relating to the point on endogeneityof human capital decisions etc: if this were to be implemented in real life, then the algorithm may learn that minorities are lower productivity due to systemic bias. \citet{LiRaymondBergman2020} do not find this to be true. Additionally one could also criticise the UCB algorithm in this case for over exploration: we know that true economic discrimination is hiring
+Relating to the point on endogeneity of human capital decisions etc: if this were to be implemented in real life, then the algorithm may learn that minorities are lower productivity due to systemic bias. \citet{LiRaymondBergman2020} do not find this to be true. Additionally one could also criticise the UCB algorithm in this case for over exploration: we know that true economic discrimination is hiring
 
-\subsection*{Algorithmic Fairness}
+\paragraph*{Algorithmic Fairness}
 
 A key point that this model provides guidance on is that of Algorithmic Fairness. If employers are to use Machine Learning to decide who to hire in their hiring policy, this could lead to a bias analogous to that presented in this paper; underlying data inherently contains the kernel of human bias, and carries this forward. This highlights the importance of policy intervention, and underpins tha the common problem that Reinforcement Learning seeks to solve: one of \textit{exploration} vs \textit{exploitation}.
 
+
+\newpage
+\section{Conclusion}
+
+This paper set out to show how discrimination can arise endogenously from firm experience; while the results, which show that affirmative action policy can exacerbate discrimination, differed from the hypotheses prior to the simulation, they are however intuitive. By economic standards, this constitutes economic discrimination in itself. While some evidence shows that affirmative action is beneficial, it is the prerogative of other economists that such soft affirmative action policies are not effective, and even exacerbates discrimination.
+
+%\paragraph{Recap Contribution}
+
+The paper contributes to the literature surrounding discrimination arising endogenously within markets, and shedding light on how policies can simultaneously improve the conditions of minorities while serving to exacerbate discrimination in labour markets
+
+%\paragraph{Results}
+
+ The results in this paper help us reflect on the corpus of evidence, in that such affirmative action policies necessitate systemic biases elsewhere in the system to be effective. For example, if minorities productivity signals are downward biased, then exploratory algorithm are necessary to understand the true productivity of minorities. Still, these policies can create more (morally) equitable outcomes while exacerbating discrimination. Then this work suggests effective long term policy lies in reducing systemic biases elsewhere, such as in education, housing, welfare, to ensure minorities ultimately have equal opportunities, and are not discriminated against in the labour market.
+
+The results from this experiment could show that 'soft affirmative action' could actually serve to exacerbate discrimination in the labour market. While the experiment shows minimal discrimination in the baseline scenario; the scenario with the policy intervention eventually shows greater levels of discrimination.
+
+\subsection{Model Assumptions and Criticisms}
+
+While the model does capture some empirical realities, it of course has it's drawbacks: \citet{Farmer2025} notes that the ad hoc assumptions of models such as this one can appear arbitrary, and as a consequence, are yet to make it in to mainstream economics. While the modelling decisions here can appear arbitrary, they are setup in order to highlight a specific mechanism of discrimination. While other models rely on certain assumptions such as inherent differences between groups, either emanating directly from innate ability, or from reliability of test scores, or from firm side discrimination such as direct taste-based discrimination. In fact, the assumptions made by the model are neutral; groups distributions are homogenous, and firms have unbiased beliefs over both groups; the only difference is the level of uncertainty over each group that the firm has. 
+
+%\paragraph*{Firm size}
+The model could also include larger firms; since firms in the model only employ one individual they cannot learn quickly. It is easily understood how larger firms, with more employees and applicant (the firm in question in \citet{LiRaymondBergman2020} worked with a data set of n > 62,000), would be able to learn quicker, and thus reduce discrimination. Then it would be helpful for firms to implement exploratory algorithms to reduces discrimination and increase profit. Additionally, the firm is unable to capture the nature of social learning, that is that firms learn by observing other firms behaviour; still, it is unclear how social learning would affect the model, as both discriminatory beliefs and non-discriminatory beliefs would spread throughout firms, indeed this could also exacerbate discrimination.
+
+Another model failure is also apparent; it is implicitly assumed that this is a model of \textit{pure signalling}, that is, the signal itself is entirely unrelated to the economic performance of the individuals. This has consequences on the scenario involving downward biased signals, as it is highly likely that such signals are indeed human capital forming (for example education), or indeed if the signal reflects work experience, that this would increase productivity at a job Evidence shows that education does increase productivity in the work force, particularly in role that necessitate such qualifications. This further reinforces the necessity of affirmative in education, where empirics show that there is a major difference.
+
+% Oonly reppresents one type of market, perhaps analogous to gig economy; since there is only one type of worker and one job role the type of discrimination is one dimensional no jb assignment, and no different types of workers in each group; this type of setup would be more conducive to needin UCB. Also only assumes normal distribution when workers are typically Gamma (or at least wages are)
+
+%\paragraph*{Types of policy}
+
+\cite{HolzerNeumark1999} say that \textit{affirmative action} constitutes an umbrella term that encompasses: many spheres, including employment, education, or government; many activities, including training, hiring, recruitment, and promotion; and voluntary vs. involuntary action, and as such is not as one-dimensional as the policy presented in this model. It could certainly be the case that other mechanisms could better serve the cause of reducing discrimination.
+
+%\paragraph{next research as a result of this project}
+
+% Conclusion ? 
+
+
+This then means that if minorities are less productive, then their lower pay is warranted. Only assessing discrimination on this basis seems primitive since discrimination permeates all institutions including education, which would certainly effect groups differently.
+
 \bibliography{references}
 \bibliographystyle{plainnat}
+
+%%Clean Appendix
 \appendix
-\section{Bayesian Updating derivation}
+\section{Bayesian Updating Derivation}
 \label{ap:derivation}
-\begin{center}
-	$P_g | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
-	
-	\vspace{0.2cm}
-	$\mu | \sigma_{pg}^2 \sim \mathcal{N}(\mu_0, \frac{\sigma_{pg}^2}{\eta_0} )$
-	
-	\vspace{0.2cm}
-	$\sigma_{pg}^2 \sim IG(\alpha_0, \beta_0)$
-	
-\end{center}
+
+\noindent The firms model worker productivity as normally distributed, placing a 
+Normal-Inverse-Gamma prior over the unknown mean and variance:
 
 \begin{center}
-	$\pi(P_{new}|P, \mu_i, \sigma_{pg}, \alpha_0, \beta_0) = p(P)$
-	
-\end{center}
-The posterior distribution of $\mu, \sigma_{pg}^2$ is as follows:
-\begin{center}
-	$\pi(\mu_g, \sigma_{pg}\mid x) = \dfrac{p(x \mid \mu_g, \sigma_{pg})p(\mu_g, \sigma_{pg})}{p(x)}$
+	\vspace{0.2cm}
+	$P_g \mid \mu_g, \sigma^{p\,2}_{gn} \sim \mathcal{N}\!\left(\mu_g,\, \sigma^p_{gn}\right)$
 	\vspace{0.2cm}
 	
-	$\propto	p(x | \mu_g, \sigma_{pg})p(\mu_g, \sigma_{pg})$
+	$\mu_g \mid \sigma^{p\,2}_{gn} \sim \mathcal{N}\!\left(\mu_0,\, \dfrac{\sigma^{p\,2}_{gn}}{\kappa_{gn}}\right)$
 	\vspace{0.2cm}
 	
-	$\propto	p(x \mid \mu_g, \sigma_{pg})p(\mu_g \mid \sigma_{pg})p(\sigma_{pg})$
-\end{center}
-
-Where the prior on the joint probability distribution of the mean and variance of productivity must be decomposed in to a product of conditional and marginal distributions.
-
-\begin{center}
-	$$p(\mu, \sigma^2 \mid x) \underbrace{\propto (2 \pi \sigma_{pg})^{-1/2}
-		\cdot exp((2 \sigma_{pg}^2)^{-1}(x_i - \mu_g)^2)}_{\text{Likelihood of data given $\mu$, $\sigma_{pg}$}}$$
-	$$\underbrace{\cdot (2 \pi \frac{\sigma_{pg}}{\eta_0})^{-1/2} 
-		\cdot exp((2 \frac{\sigma_{pg}}{\eta_0})^{-1}(\mu_g - \mu_0)^2)}_{\text{prior on $\mu_g$, conditional on $\sigma_{pg}$}}$$
-	$$\underbrace{\cdot \dfrac{\beta_0^{\alpha_0}}{\Gamma(\alpha_0)}
-		\cdot (\sigma_{pg})^{-(\alpha_0 + 1)}
-		\cdot exp(-\dfrac{\beta_0}{\sigma_{pg}})}_{\text{prior on $\sigma_{pg}$}}$$
-	
-\end{center}
-
-Then we can remove any normalising terms which do not depend on the unknown parameters, and are thus normalising constants:
-
-\begin{center}
-	$$p(\mu, \sigma^2 \mid x) \propto \left(\frac{1}{\sigma^2}\right)^{\alpha_0 + 2} 
-	\exp\!\left(-\frac{1}{2\sigma^2}\left[(x - \mu)^2 + \kappa_0(\mu - \mu_0)^2 + 2\beta_0\right]\right)$$
-	
-	$$ \propto \left(\frac{1}{\sigma_{pg}^2}\right)^{\frac{1}{2}}
-	\exp(-\frac{1}{2\sigma^2}(x - \mu_{g1})^2)
-	\left(\frac{1}{\sigma_{pg}^2}\right)^{\alpha_1}
-	\exp(-\frac{1}{2\sigma^2}(\mu_g - \mu_{g1})^2)$$
-	
-	
-\end{center}
-
-Where:
-
-\begin{align}
-	\kappa_1 &= \kappa_0 + 1 \\
-	\mu_1 &= \frac{\kappa_0 \mu_0 + x}{\kappa_0 + 1} \\
-	\alpha_1 &= \alpha_0 + \frac{1}{2} \\
-	\beta_1 &= \beta_0 + \frac{\kappa_0 (x - \mu_0)^2}{2(\kappa_0 + 1)}
-\end{align}
-
-We can decompose the updates for $\mu_{g1}$ in to two terms:
-
-\begin{center}
-	$$ \mu_{g1} = \mu_{g0} \left(\frac{\eta_{g0}}{\eta_{g0} + 1}\right) + x_i \left(\frac{1}{\eta_{g0} + 1}\right)$$ 
-\end{center}
-The firm must also model their beliefs about the nature of the signal for each group. It is assumed that the firm correctly believe that the signal is unbiased, as such, updates on the signal only constitute one unknown parameter (the variance).
-
-\begin{center}
-	$x_i | \mu_g, \sigma_{pg}^2\sim \mathcal{N}(\mu, \sigma_{pg})$
-	
+	$\sigma^{p\,2}_{gn} \sim \mathcal{IG}\!\left(\alpha_{gn},\, \beta_{gn}\right)$
 	\vspace{0.2cm}
-	$\sigma_{pg}^2 \sim IG(\delta_{g0}, \kappa_{g0})$
-	
-	
-\end{center}
-%TODO Sort out notation on mus and sigmas, could do superscript for the group and subscript for 0/1 depending on prior / posterior ?
-\begin{center}
-	$\pi(\sigma_{pg}\mid x, \mu_{gs} = 0) = \dfrac{p(x \mid \mu_{gs} = 0, \sigma_{sg})p(\sigma_{sg})}{p(x)}$
-	\vspace{0.2cm}
-	
-	$\propto	p(x \mid \mu_{gs} = 0, \sigma_{sg})p(\sigma_{sg})$
-	\vspace{0.2cm}
-	
-	$$p(\mu, \sigma^2 \mid x) \underbrace{\propto (2 \pi \sigma_{sg})^{-1/2}
-		\cdot exp((2 \sigma_{sg}^2)^{-1}x_i^2)}_{\text{Likelihood of data given $\sigma_{sg}$}}$$
-	$$\underbrace{\cdot \dfrac{\kappa_0^{\delta_0}}{\Gamma(\delta_0)}
-		\cdot (\sigma_{pg})^{-(\delta_0 + 1)}
-		\cdot exp(-\dfrac{\kappa_0}{\sigma_{sg}})}_{\text{prior on $\sigma_{sg}$}}$$
 \end{center}
 
-\begin{align}
-	p(\sigma^2 \mid x) &\propto \left(\frac{1}{\sigma^2}\right)^{1/2}
-	\exp\!\left(-\frac{x^2}{2\sigma^2}\right)
+\noindent Applying Bayes' rule, the posterior over $(\mu_g, \sigma^{p\,2}_{gn})$ is:
+
+\begin{center}
+	\vspace{0.2cm}
+	$\pi\!\left(\mu_g, \sigma^p_{gn} \mid x\right) 
+	= \dfrac{p\!\left(x \mid \mu_g, \sigma^p_{gn}\right) 
+		p\!\left(\mu_g, \sigma^p_{gn}\right)}{p(x)}
+	\propto p\!\left(x \mid \mu_g, \sigma^p_{gn}\right) 
+	p\!\left(\mu_g \mid \sigma^p_{gn}\right) 
+	p\!\left(\sigma^p_{gn}\right)$
+	\vspace{0.2cm}
+\end{center}
+
+\noindent where the joint prior decomposes into a product of conditional and marginal 
+distributions. Expanding each term:
+
+\begin{gather*}
+	p\!\left(\mu_g, \sigma^{p\,2}_{gn} \mid x\right) \propto \\[8pt]
+	\underbrace{\left(2\pi\sigma^{p\,2}_{gn}\right)^{-1/2}
+		\exp\!\left(-\frac{(x_i - \mu_g)^2}{2\sigma^{p\,2}_{gn}}\right)
+	}_{\text{likelihood}}\\[10pt]
+	\cdot\;
+	\underbrace{\left(\frac{2\pi\sigma^{p\,2}_{gn}}{\kappa_{gn}}\right)^{-1/2}
+		\exp\!\left(-\frac{\kappa_{gn}(\mu_g - \mu_0)^2}{2\sigma^{p\,2}_{gn}}\right)
+	}_{\text{prior on } \mu_g \mid \sigma^{p\,2}_{gn}}\\[10pt]
+	\cdot\;
+	\underbrace{\dfrac{\beta_{gn}^{\alpha_{gn}}}{\Gamma(\alpha_{gn})}
+		\left(\sigma^{p\,2}_{gn}\right)^{-(\alpha_{gn}+1)}
+		\exp\!\left(-\dfrac{\beta_{gn}}{\sigma^{p\,2}_{gn}}\right)
+	}_{\text{prior on }\sigma^{p\,2}_{gn}}
+\end{gather*}
+
+\noindent Discarding terms that do not depend on the unknown parameters:
+
+\begin{align*}
+	p\!\left(\mu_g, \sigma^{p\,2}_{gn} \mid x\right) 
+	&\propto 
+	\left(\frac{1}{\sigma^{p\,2}_{gn}}\right)^{\alpha_{gn}+2}
+	\exp\!\left(-\frac{1}{2\sigma^{p\,2}_{gn}}
+	\left[(x-\mu_g)^2 + \kappa_{gn}(\mu_g - \mu_0)^2 + 2\beta_{gn}\right]\right)\\[10pt]
+	&\propto
+	\left(\frac{1}{\sigma^{p\,2}_{gn}}\right)^{1/2}
+	\exp\!\left(-\frac{(x - \mu_{g(n+1)})^2}{2\sigma^{p\,2}_{gn}}\right)\\
+	&\phantom{{}\propto{}}
+	\cdot\left(\frac{1}{\sigma^{p\,2}_{gn}}\right)^{\alpha_{g(n+1)}+1}
+	\exp\!\left(-\frac{\beta_{g(n+1)}}{\sigma^{p\,2}_{gn}}\right)
+\end{align*}
+
+\noindent which is recognisable as a Normal-Inverse-Gamma kernel, confirming conjugacy. 
+The posterior hyperparameters are:
+
+\begin{align*}
+	\kappa_{g(n+1)} &= \kappa_{gn} + 1 \\[6pt]
+	\mu_{g(n+1)}    &= \frac{\kappa_{gn}\,\mu_{gn} + x}{\kappa_{g(n+1)}} \\[6pt]
+	\alpha_{g(n+1)} &= \alpha_{gn} + \frac{1}{2} \\[6pt]
+	\beta_{g(n+1)}  &= \beta_{gn} + 
+	\frac{\kappa_{gn}(x - \mu_{gn})^2}{2\,\kappa_{g(n+1)}}
+\end{align*}
+
+\noindent The update for $\mu_{g(n+1)}$ can be decomposed as a 
+precision-weighted average of the prior mean and the new observation:
+
+\begin{equation*}
+	\mu_{g(n+1)} = \mu_{gn}\left(\frac{\kappa_{gn}}{\kappa_{gn}+1}\right) 
+	+ x_i\left(\frac{1}{\kappa_{gn}+1}\right)
+\end{equation*}
+
+\noindent The firm also models beliefs about the signal variance for each group. 
+Since the signal is correctly assumed to be unbiased, only the variance is unknown:
+
+\begin{center}
+	\vspace{0.2cm}
+	$s_i \mid \sigma^{s\,2}_{gn} \sim \mathcal{N}\!\left(0,\, \sigma^s_{gn}\right)$
+	\vspace{0.2cm}
+	
+	$\sigma^{s\,2}_{gn} \sim \mathcal{IG}\!\left(\delta_{gn},\, \kappa_{gn}\right)$
+	\vspace{0.2cm}
+\end{center}
+
+\noindent Applying Bayes' rule with $\mu_{gs} = 0$:
+
+\begin{gather*}
+	\pi\!\left(\sigma^s_{gn} \mid x,\, \mu_{gs} = 0\right) \propto
+	p\!\left(x \mid \mu_{gs}=0,\, \sigma^s_{gn}\right) p\!\left(\sigma^s_{gn}\right)\\[10pt]
+	\propto\;
+	\underbrace{\left(2\pi\sigma^{s\,2}_{gn}\right)^{-1/2}
+		\exp\!\left(-\frac{x_i^2}{2\sigma^{s\,2}_{gn}}\right)
+	}_{\text{likelihood}}
+	\cdot\;
+	\underbrace{\dfrac{\kappa_{gn}^{\delta_{gn}}}{\Gamma(\delta_{gn})}
+		\left(\sigma^{s\,2}_{gn}\right)^{-(\delta_{gn}+1)}
+		\exp\!\left(-\dfrac{\kappa_{gn}}{\sigma^{s\,2}_{gn}}\right)
+	}_{\text{prior on }\sigma^{s\,2}_{gn}}
+\end{gather*}
+
+\noindent Collecting powers and combining exponentials:
+
+\begin{align*}
+	p\!\left(\sigma^{s\,2}_{gn} \mid x\right) 
+	&\propto \left(\frac{1}{\sigma^{s\,2}_{gn}}\right)^{1/2}
+	\exp\!\left(-\frac{x^2}{2\sigma^{s\,2}_{gn}}\right)
 	\cdot
-	\left(\frac{1}{\sigma^2}\right)^{\alpha_0+1}
-	\exp\!\left(-\frac{\beta_0}{\sigma^2}\right) \\[6pt]
-	&\propto \left(\frac{1}{\sigma^2}\right)^{\alpha_0+3/2}
-	\exp\!\left(-\frac{1}{\sigma^2}\left[\beta_0 + \frac{x^2}{2}\right]\right)
-\end{align}
+	\left(\frac{1}{\sigma^{s\,2}_{gn}}\right)^{\delta_{gn}+1}
+	\exp\!\left(-\frac{\kappa_{gn}}{\sigma^{s\,2}_{gn}}\right) \\[6pt]
+	&\propto \left(\frac{1}{\sigma^{s\,2}_{gn}}\right)^{\delta_{gn}+3/2}
+	\exp\!\left(-\frac{1}{\sigma^{s\,2}_{gn}}
+	\left[\kappa_{gn} + \frac{x^2}{2}\right]\right)
+\end{align*}
 
-With updates:
-\begin{center}
-	$$\alpha_1 = \alpha_0 + \frac{1}{2}$$
-	\qquad
-	$$\beta_1 = \beta_0 + \frac{x_i^2}{2}$$
-\end{center}
+\noindent with posterior updates:
+
+\begin{align*}
+	\delta_{g(n+1)} &= \delta_{gn} + \frac{1}{2} \\[6pt]
+	\kappa_{g(n+1)} &= \kappa_{gn} + \frac{x_i^2}{2}
+\end{align*}
+
+\noindent To obtain the predictive distribution for the next worker's productivity, 
+one integrates out over the joint posterior:
+
+\begin{align*}
+	p(x^* \mid \mathbf{x}) 
+	&= \int_0^\infty \int_{-\infty}^\infty 
+	p(x^* \mid \mu, \sigma^{p\,2}_{gn})\,
+	p(\mu, \sigma^{p\,2}_{gn} \mid \mathbf{x})\,
+	d\mu\; d\sigma^{p\,2}_{gn} \\[6pt]
+	&\propto \left[1 + \frac{1}{2\alpha_{gn}} \cdot
+	\frac{(x^* - \mu_{gn})^2}{\beta_{gn}(\kappa_{gn}+1)/(\alpha_{gn}\kappa_{gn})}
+	\right]^{-(\alpha_{gn}+1/2)} \\[6pt]
+	&\implies x^* \mid \mathbf{x} \;\sim\; 
+	t_{2\alpha_{gn}}\!\left(\mu_{gn},\;
+	\frac{\beta_{gn}(\kappa_{gn}+1)}{\alpha_{gn}\kappa_{gn}}\right)
+\end{align*}
+\newpage
+%-------------------------------------------------------------------
 \section{Updating Posterior Beliefs Upon Rejection}
 \label{ap:dataaug}
+%-------------------------------------------------------------------
+
+\noindent When a firm's offer is rejected, the rejection is informative: the worker's 
+productivity must have been sufficient to attract a competing offer. The firm treats 
+this as a truncated observation, inferring that productivity exceeds the current 
+posterior mean $\tau = \mu_{gn}$. Define the inverse Mills ratio:
+
+\begin{align*}
+	z &= \frac{\tau - \mu_{gn}}{\sigma^p_{gn}} \\[6pt]
+	\lambda(\tau) &= \frac{\phi(z)}{1 - \Phi(z)}
+\end{align*}
+
+\noindent where $\phi(\cdot)$ and $\Phi(\cdot)$ denote the standard normal PDF and CDF 
+respectively, and $\sigma^{p\,2}_{gn} = \beta_{gn}/(\alpha_{gn}-1)$ is the posterior 
+mean of the productivity variance. The mean and variance of the truncated 
+distribution are then:
+
+\begin{align*}
+	\mathbb{E}\!\left[x \mid x > \tau\right] 
+	&= \mu_{gn} + \sigma^p_{gn}\,\lambda(\tau) \\[6pt]
+	\mathbb{V}\!\left[x \mid x > \tau\right] 
+	&= \sigma^{p\,2}_{gn}\!\left[1 - \lambda(\tau)
+	\left(\lambda(\tau) - z\right)\right]
+\end{align*}
+
+\noindent These feed into the Normal-Inverse-Gamma updates as follows:
+
+\begin{align*}
+	\kappa_{g(n+1)} &= \kappa_{gn} + 1 \\[6pt]
+	\mu_{g(n+1)}    &= \frac{\kappa_{gn}\,\mu_{gn} 
+		+ \mathbb{E}[x \mid x > \tau]}{\kappa_{g(n+1)}} \\[6pt]
+	\alpha_{g(n+1)} &= \alpha_{gn} + \frac{1}{2} \\[6pt]
+	\beta_{g(n+1)}  &= \beta_{gn} 
+	+ \frac{\kappa_{gn}
+		\left(\mathbb{E}[x \mid x > \tau] - \mu_{gn}\right)^2}
+	{2\,\kappa_{g(n+1)}}
+	+ \frac{\mathbb{V}[x \mid x > \tau]}{2}
+\end{align*}
+
+\newpage
 \section{Robustness checks}
 \label{ap:robustness}
+\include{results/robustness.tex}
+\includegraphics{figs/robustness_ucb_c_by_minority_ci.png}
 \end{document}
