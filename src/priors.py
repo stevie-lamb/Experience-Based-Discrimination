@@ -90,7 +90,9 @@ def x_grid_signal_error(
     return np.linspace(-half, half, n_grid)
 
 
-def productivity_t_params(mu: float, eta: float, alpha: float, beta: float) -> tuple[float, float, float]:
+def productivity_t_params(
+    mu: float, eta: float, alpha: float, beta: float
+) -> tuple[float, float, float]:
     """Degrees of freedom, location, and scale for the marginal Student-t."""
     scale2 = beta * (eta + 1.0) / (alpha * eta)
     return 2.0 * alpha, mu, float(np.sqrt(scale2))
@@ -126,24 +128,49 @@ def _plot_nig_joint(
     """NIG joint contour (line contours only)."""
     m_mesh, v_mesh = np.meshgrid(mu_axis, var_axis)
     log_pdf = np.log(np.maximum(dist_nig.pdf(m_mesh, v_mesh), 1e-300))
-    levels = np.linspace(np.percentile(log_pdf, 8), np.percentile(log_pdf, 92), n_contour)
-    ax.contour(m_mesh, v_mesh, log_pdf, levels=levels, colors=COLOR_CONTOUR, linewidths=0.55, alpha=0.85)
+    levels = np.linspace(
+        np.percentile(log_pdf, 8), np.percentile(log_pdf, 92), n_contour
+    )
+    ax.contour(
+        m_mesh,
+        v_mesh,
+        log_pdf,
+        levels=levels,
+        colors=COLOR_CONTOUR,
+        linewidths=0.55,
+        alpha=0.85,
+    )
     ax.axvline(true_mu, color=COLOR_MEAN, ls=":", lw=0.8, alpha=0.75)
     ax.axhline(true_var, color=COLOR_VAR, ls=":", lw=0.8, alpha=0.75)
     ax.text(
-        0.02, 0.97,
+        0.02,
+        0.97,
         rf"$\mathcal{{NIG}}$: $\mu={mu:g}$, $\nu={eta:g}$, $\alpha={alpha:g}$, $\beta={beta:g}$",
-        transform=ax.transAxes, fontsize=8, va="top", ha="left",
+        transform=ax.transAxes,
+        fontsize=8,
+        va="top",
+        ha="left",
     )
     if show_ref_labels:
         var_lo, var_hi = var_axis[0], var_axis[-1]
         ax.text(
-            true_mu, var_lo + 0.08 * (var_hi - var_lo), rf"$\mu={true_mu:g}$",
-            color=COLOR_MEAN, rotation=90, va="bottom", ha="right", fontsize=8,
+            true_mu,
+            var_lo + 0.08 * (var_hi - var_lo),
+            rf"$\mu={true_mu:g}$",
+            color=COLOR_MEAN,
+            rotation=90,
+            va="bottom",
+            ha="right",
+            fontsize=8,
         )
         ax.text(
-            mu_axis[-1], true_var, rf"$\sigma^2={true_var:g}$",
-            color=COLOR_VAR, va="bottom", ha="right", fontsize=8,
+            mu_axis[-1],
+            true_var,
+            rf"$\sigma^2={true_var:g}$",
+            color=COLOR_VAR,
+            va="bottom",
+            ha="right",
+            fontsize=8,
         )
     ax.grid(True)
 
@@ -182,7 +209,11 @@ def _plot_prior_pair(
 
     ax_t.plot(x_grid, pdf_t, color=COLOR_TIMELINE_BLUE, lw=1.5, label="marginal $t$")
     ax_t.plot(
-        x_grid, pdf_true, color=COLOR_TRUE, lw=1.2, ls="--",
+        x_grid,
+        pdf_true,
+        color=COLOR_TRUE,
+        lw=1.2,
+        ls="--",
         label=rf"true $\mathcal{{N}}({true_mu},{true_sd:g})$",
     )
     ax_t.axvline(true_mu, color=COLOR_MEAN, ls=":", lw=0.8, alpha=0.75)
@@ -248,24 +279,27 @@ def prod(
 
     n = len(rows)
     if figsize is None:
-        figsize = (
-            (PAGE_WIDTH_IN, PAGE_HEIGHT_IN)
-            if n > 1
-            else (PAGE_WIDTH_IN, 2.6)
-        )
+        figsize = (PAGE_WIDTH_IN, PAGE_HEIGHT_IN) if n > 1 else (PAGE_WIDTH_IN, 2.6)
 
     x_grid = x_grid_productivity(true_mu, n_grid)
 
     with plt.rc_context(PLOT_RC):
         fig, axes = plt.subplots(
-            n, 2, figsize=figsize, squeeze=False, layout="constrained",
+            n,
+            2,
+            figsize=figsize,
+            squeeze=False,
+            layout="constrained",
         )
 
         for i, (label, m, e, a, b) in enumerate(rows):
             _plot_prior_pair(
                 axes[i, 0],
                 axes[i, 1],
-                m, e, a, b,
+                m,
+                e,
+                a,
+                b,
                 label=label,
                 true_mu=true_mu,
                 true_var=true_var,
@@ -349,7 +383,9 @@ def priors_quadrants_groups_ij(
     true_sig_sd = np.sqrt(true_sig_var)
 
     with plt.rc_context(PLOT_RC):
-        fig, axes = plt.subplots(4, 2, figsize=figsize, squeeze=False, layout="constrained")
+        fig, axes = plt.subplots(
+            4, 2, figsize=figsize, squeeze=False, layout="constrained"
+        )
 
         for g in range(2):
             block_top = 2 * g
@@ -375,7 +411,9 @@ def priors_quadrants_groups_ij(
                 show_ylabel=True,
                 show_ref_labels=(g == 1),
             )
-            axes[block_top, 1].set_title(f"{grp}: productivity prior $\\mathcal{{NIG}}$", loc="left", pad=2)
+            axes[block_top, 1].set_title(
+                f"{grp}: productivity prior $\\mathcal{{NIG}}$", loc="left", pad=2
+            )
 
             # Signal: Student-t + Inv-Gamma
             nu_sig, _, scale_sig = signal_t_params(delta, kappa)
@@ -383,7 +421,13 @@ def priors_quadrants_groups_ij(
             pdf_sig_true = norm.pdf(x_grid_sig, loc=0.0, scale=true_sig_sd)
 
             ax_st = axes[block_top + 1, 0]
-            ax_st.plot(x_grid_sig, pdf_sig_t, color=COLOR_TIMELINE_BLUE, lw=1.5, label="marginal $t$")
+            ax_st.plot(
+                x_grid_sig,
+                pdf_sig_t,
+                color=COLOR_TIMELINE_BLUE,
+                lw=1.5,
+                label="marginal $t$",
+            )
             ax_st.plot(
                 x_grid_sig,
                 pdf_sig_true,
@@ -400,11 +444,22 @@ def priors_quadrants_groups_ij(
                 ax_st.legend(loc="upper right", framealpha=0.9, borderpad=0.4)
 
             sig_mean = signal_var_mean(delta, kappa)
-            sig_v_grid = x_grid_signal_var(true_sig_var, var_hi=max(1.4 * sig_mean, 1.4 * true_sig_var), n_grid=n_grid)
+            sig_v_grid = x_grid_signal_var(
+                true_sig_var,
+                var_hi=max(1.4 * sig_mean, 1.4 * true_sig_var),
+                n_grid=n_grid,
+            )
             ax_sv = axes[block_top + 1, 1]
-            ax_sv.plot(sig_v_grid, invgamma(delta, scale=kappa).pdf(sig_v_grid), color=COLOR_TIMELINE_BLUE, lw=1.5)
+            ax_sv.plot(
+                sig_v_grid,
+                invgamma(delta, scale=kappa).pdf(sig_v_grid),
+                color=COLOR_TIMELINE_BLUE,
+                lw=1.5,
+            )
             ax_sv.axvline(true_sig_var, color=COLOR_VAR, ls="--", lw=1.0, alpha=0.85)
-            ax_sv.axvline(sig_mean, color=COLOR_TIMELINE_MID, ls=":", lw=0.9, alpha=0.85)
+            ax_sv.axvline(
+                sig_mean, color=COLOR_TIMELINE_MID, ls=":", lw=0.9, alpha=0.85
+            )
             ax_sv.text(
                 0.02,
                 0.97,
@@ -414,7 +469,9 @@ def priors_quadrants_groups_ij(
                 va="top",
                 ha="left",
             )
-            ax_sv.set_title(f"{grp}: signal-variance prior Inv-Gamma", loc="left", pad=2)
+            ax_sv.set_title(
+                f"{grp}: signal-variance prior Inv-Gamma", loc="left", pad=2
+            )
             ax_sv.set_ylabel("density")
             ax_sv.grid(True)
 
@@ -446,18 +503,40 @@ def _plot_signal_var_row(
     pdf_ig = dist.pdf(v_grid)
     mean_v = signal_var_mean(delta, kappa)
     ax.plot(v_grid, pdf_ig, color=COLOR_TIMELINE_BLUE, lw=1.5, label=r"Inv-Gamma prior")
-    ax.axvline(true_sig_var, color=COLOR_VAR, ls="--", lw=1.0, alpha=0.85, label="true signal variance")
-    ax.axvline(mean_v, color=COLOR_TIMELINE_MID, ls=":", lw=0.9, alpha=0.85, label=r"mean $\kappa/(\delta-1)$")
+    ax.axvline(
+        true_sig_var,
+        color=COLOR_VAR,
+        ls="--",
+        lw=1.0,
+        alpha=0.85,
+        label="true signal variance",
+    )
+    ax.axvline(
+        mean_v,
+        color=COLOR_TIMELINE_MID,
+        ls=":",
+        lw=0.9,
+        alpha=0.85,
+        label=r"mean $\kappa/(\delta-1)$",
+    )
     ax.set_title(label, loc="left", pad=2)
     ax.text(
-        0.98, 0.97,
+        0.98,
+        0.97,
         rf"$\delta={delta:g}$, $\kappa={kappa:g}$",
-        transform=ax.transAxes, fontsize=8, va="top", ha="right",
+        transform=ax.transAxes,
+        fontsize=8,
+        va="top",
+        ha="right",
     )
     if show_ref_label:
         ax.text(
-            true_sig_var, 0.92 * ax.get_ylim()[1], rf"$\sigma_s^2={true_sig_var:g}$",
-            color=COLOR_VAR, ha="center", fontsize=8,
+            true_sig_var,
+            0.92 * ax.get_ylim()[1],
+            rf"$\sigma_s^2={true_sig_var:g}$",
+            color=COLOR_VAR,
+            ha="center",
+            fontsize=8,
         )
     ax.grid(True)
     if show_ylabel:
@@ -503,13 +582,16 @@ def signal_var(
     v_grid = x_grid_signal_var(true_sig_var, var_hi=1.4 * max(means + [true_sig_var]))
 
     with plt.rc_context(PLOT_RC):
-        fig, axes = plt.subplots(n, 1, figsize=figsize, squeeze=False, layout="constrained")
+        fig, axes = plt.subplots(
+            n, 1, figsize=figsize, squeeze=False, layout="constrained"
+        )
         axes = axes[:, 0]
 
         for i, (label, d, k) in enumerate(rows):
             _plot_signal_var_row(
                 axes[i],
-                d, k,
+                d,
+                k,
                 label=label,
                 true_sig_var=true_sig_var,
                 v_grid=v_grid,
@@ -528,9 +610,114 @@ def signal_var(
     return path
 
 
+# Outcome / simulation figures (firm_outcomes, market_outcomes, ebd)
+DISSERTATION_DPI = 200
+FIGSIZE_TIMESERIES = (PAGE_WIDTH_IN, 3.4)
+FIGSIZE_CDF = (PAGE_WIDTH_IN, 3.2)
+
+GROUP_LINE_COLORS = (
+    COLOR_TIMELINE_BLUE,
+    COLOR_TIMELINE_MID,
+    COLOR_VAR,
+    COLOR_MEAN,
+    COLOR_TRUE,
+)
+
+
+def plot_rc_context():
+    """Matplotlib rc context matching dissertation prior figures."""
+    return plt.rc_context(PLOT_RC)
+
+
+def save_dissertation_figure(
+    fig: plt.Figure, path: str | Path, *, dpi: int = DISSERTATION_DPI
+) -> Path:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=dpi)
+    plt.close(fig)
+    return path
+
+
+def style_axis(ax: plt.Axes, *, grid: bool = True) -> None:
+    if grid:
+        ax.grid(True)
+
+
+def dissertation_title(ax: plt.Axes, title: str) -> None:
+    ax.set_title(title, loc="left", pad=2)
+
+
+def group_line_color(group_index: int) -> str:
+    return GROUP_LINE_COLORS[group_index % len(GROUP_LINE_COLORS)]
+
+
+# Four-scenario pipeline (paired baseline vs policy, unbiased and biased)
+SCENARIO_IDS = ("baseline", "policy", "baseline_bias", "policy_bias")
+SCENARIO_PAIRS = (
+    ("unbiased", ("baseline", "policy")),
+    ("biased", ("baseline_bias", "policy_bias")),
+)
+PANEL_TITLES = {
+    "unbiased": "Unbiased signals: baseline vs policy",
+    "biased": "Downward-biased signals: baseline vs policy",
+}
+SCENARIO_LABELS = {
+    "baseline": "Baseline",
+    "policy": "Policy",
+    "baseline_bias": "Baseline",
+    "policy_bias": "Policy",
+}
+SCENARIO_TEX_LABELS = {
+    "baseline": "Baseline (myopic)",
+    "policy": "Policy (BayesUCB)",
+    "baseline_bias": "Baseline (myopic)",
+    "policy_bias": "Policy (BayesUCB)",
+}
+# Light (g0) / dark (g1) per scenario — blue, green, red, purple families
+SCENARIO_GROUP_COLORS = {
+    "baseline": ("#90caf9", "#1565c0"),
+    "policy": ("#a5d6a7", "#2e7d32"),
+    "baseline_bias": ("#ef9a9a", "#c62828"),
+    "policy_bias": ("#ce93d8", "#6a1b9a"),
+}
+SCENARIO_LINE_COLORS = {
+    "baseline": COLOR_TRUE,
+    "policy": "#2e7d32",
+    "baseline_bias": "#c62828",
+    "policy_bias": "#6a1b9a",
+}
+PAIR_BASELINE_KEYS = {
+    "unbiased": "baseline",
+    "biased": "baseline_bias",
+}
+PAIR_POLICY_KEYS = {
+    "unbiased": "policy",
+    "biased": "policy_bias",
+}
+SCENARIO_FACET_TITLES = {
+    "baseline": "Baseline (myopic, unbiased)",
+    "policy": "Policy (BayesUCB, unbiased)",
+    "baseline_bias": "Baseline (myopic, biased)",
+    "policy_bias": "Policy (BayesUCB, biased)",
+}
+
+
+def scenario_group_color(scenario_id: str, group_index: int) -> str:
+    colors = SCENARIO_GROUP_COLORS[scenario_id]
+    return colors[group_index % len(colors)]
+
+
+def legend_dissertation(ax: plt.Axes, **kwargs) -> None:
+    defaults = {"loc": "upper right", "framealpha": 0.9, "borderpad": 0.4}
+    defaults.update(kwargs)
+    ax.legend(**defaults)
+
+
 if __name__ == "__main__":
     prod(path="figs/productivity_priors_panel.png", n_examples=4)
-    prod_default_groups(figsize = (6.5, 5.0), path="figs/productivity_priors_defaults_by_group.png")
+    prod_default_groups(
+        figsize=(6.5, 5.0), path="figs/productivity_priors_defaults_by_group.png"
+    )
     priors_quadrants_groups_ij(path="figs/priors_quadrants_groups_ij.png")
     signal_var(path="figs/signal_variance_priors_panel.png", n_examples=4)
-

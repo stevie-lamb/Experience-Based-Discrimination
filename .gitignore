@@ -1,8 +1,52 @@
-\.notes
+# Local env
+.notes
+epd-env/
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.gz
+
+# Generated figures/PDFs
 *.png
 *.pdf
-*.bbl
-*.aux
-*.blg
-*.log
-*.gz
+figs/
+figs_910/
+
+# Simulation outputs
+results/
+results_*/
+results_db/
+*.json
+*.csv
+
+# Generated TeX — keep dissertation source only
+*.tex
+!Report.tex
+
+# Shell helpers and one-offs
+*.sh
+wordcount.sh
+
+# Smoke tests and debug scripts
+smoke_test*.py
+scripts/debug_*.py
+scripts/diagnose_*.py
+scripts/validate_*.py
+
+# Editor / OS
+.DS_Store
+*~

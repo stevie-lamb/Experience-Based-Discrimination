@@ -21,7 +21,7 @@
 \footnotetext{Faculty of Economics, University of Cambridge} %%%%%%%%%%
 
 \begin{abstract}
-Although discrimination has been extensively studied in labour markets, the mechanisms by which it operates, and thus the pertinent policies with which to combat it are still debated. To contribute to the discussion, this paper focuses on \textit{Experience Based Discrimination}, whereby firms endogenous hiring decisions create irregularities in learning the true productivity of workers in the market, leading to discrimination. The paper presents an Agent-Based Model (ABM) of the labour market, utilised for it's ability to observe endogenous phenomena in markets. Within the model, there is no inherent difference of innate ability, productivity, or reliability of signals between groups, or any firm-side \textit{taste-based} discrimination. Each firm faces a 'Contextual Bandit' problem, and are modelled as \textit{Bayesian Updaters}, who have posterior beliefs on the worker productivity. When firms are uncertain about the productivity of minority groups, a sharp conclusion is drawn from the results: under a 'baseline' scenario, there is no discrimination in wage or employment level, yet, under an affirmative action 'policy' scenario, discrimination arises endogenously within the model. These initially counter-intuitive results are in line with the economic theory and empirics that oppose such affirmative action policies.
+Although discrimination has been extensively studied in labour markets, the mechanisms by which it operates, and thus the pertinent policies with which to combat it are still debated. To contribute to the discussion, this paper focuses on \textit{Experience Based Discrimination}, whereby firms unique experiences and endogenous hiring decisions lead to varying beliefs about groups in the population, and consequently, discrimination. The paper presents an Agent-Based Model (ABM) of the labour market, aimed at observing discrimination as an endogenous phenomena. The model presents results from four scenarios from which comparison is made: two 'baseline' scenarios, one in which signals of productivity are unbiased, and another in which they are downward biased for a 'minority' group, and two further comparative 'policy' scenarios, which integrate 'affirmative action' in to firms hiring policy. Firms are modelled as \textit{Bayesian Updaters}, and update their posterior beliefs on productivity as they hire and thus observe workers' productivities; in each period, the firm faces a 'Contextual Bandit' problem, in that they must hire an individual given a context vector providing informations on their group and productivity signals. When firms are uncertain about the productivity of minority groups, a sharp conclusion is drawn from the results: under a 'baseline' scenario, there is little discrimination in wage or employment level, yet, under an affirmative action 'policy' scenario, discrimination arises endogenously within the model. While under downward biased signals the policy increases \textit{equity of process}, \textit{equity of outcomes} are still more unequal under the policy scenario. These initially counter-intuitive results are in line with the economic theory and empirics that oppose such affirmative action policies.
 \end{abstract} %%%%%%%%%
 
 
@@ -297,7 +297,7 @@ Here, this policy is modelled using BayesUCB \citep{kaufmann2012}. This utilises
 	\label{eq:ucb_choice}
 \end{equation}
 
-This can be thought of as affirmative action, since firms give greater direct consideration to those groups which it has more uncertainty over. The strength of the policy is given by the $c$ parameter$^*$\footnote{$^*$It is also clipped to $\in \left[0.5, 0.95\right]$; the minimum bound is the neutral case, while the upper bound prevents any extreme policy}, which increases the weight on the standard deviation of the posterior. Additionally, if the firm is faced with two individuals from the same group, then this algorithm is not necessary since they share posterior distributions over productivity.
+This can be thought of as affirmative action, since firms give greater direct consideration to those groups which it has more uncertainty over. The strength of the policy is given by the $c$ parameter$^*$\footnote{$^*$It is also clipped to $\in \left[0.5, 0.95\right]$; the minimum bound is the neutral case, while the upper bound prevents any extreme policy}, which increases the weight on the standard deviation of the posterior. Additionally, if the firm is faced with two individuals from the same group, then this algorithm is not necessary since they share posterior distributions over productivity. Crucially, it is assumed that, while the policy gives greater credence to groups that they have greater uncertainty over, this does not affect the wage paid to them
 
 \paragraph{Regret} Regret is the difference between the outcome of the arm that an 'oracle' would have chosen, and the realised outcome of the firm. 
 \begin{equation}
@@ -328,59 +328,74 @@ Under the baseline, there is very little difference in the empirical wage distri
 
 \begin{figure}[]
 		\centering
-		\includegraphics[width=1\textwidth]{figs/wage_cdf_policy_over_baseline.png}
+		\includegraphics[width=1\textwidth, scale=1]{figs_910/wage_cdf_four_scenarios.png}
 		\caption[]{Wage CDF of each group; data is pooled after a burn-in period of t=100. The upper plot shows CDF under the policy, while the lower shows the CDF under the baseline.}
 		\label{fig:base_cdf}
 \end{figure}
 
-\input{results/table_wage_distribution_moments_by_group.tex}
+\input{results_910/table_wage_distribution_moments_by_group_---_unbiased_signals.tex}
+\input{results_910/table_wage_distribution_moments_by_group_---_downward-biased_signals.tex}
 Table %include reference
 1 shows the empirical moments, where data is pooled after a burn in of 100 periods. It shows that under the policy, there is a much greater difference between the mean wage amongst each group, and greater variance under the policy. These facts match the empirical reality. Additionally, Figure \ref{fig:base_cdf} shows the empirical wage distribution visually; the wage CDF for group 0 first order stochastically dominates the wage CDF for the minority group, indicating that minorities can expect a lower wage than their majority group counterparts no matter where they lie in the productivity distribution
+\newpage
 
 \paragraph{Market Outcomes}
-Minorities are employed at a lower rate than those from the majority group under the policy, while they are employed similarly under the baseline.
+Minorities actually obtain greater relative employment under the baseline with unbiased signals, while they are employed similarly under the baseline.
+\input{results_910/table_employment-rate_gap_final_period_---_unbiased_signals.tex}
 
-\input{results/table_final-period_employment_rate_by_group_policy_baseline.tex}
+Under the baseline scenario with downward biased signals, individuals from the majority group achieve relative employment of 9 percentage points greater than the minority group. Yet, under the policy, this is result is reversed; minorities achieve greater relative employment, that is they are employed at a higher rate than their total representation in the economy.
+\input{results_910/table_employment-rate_gap_final_period_---_downward-biased_signals.tex}
+\newpage
 
-\paragraph{Employer Beliefs}
-Additionally, firms do not learn the true distribution of the group; being faced with $n > 1$ workers at each stage increases the likelihood of them hiring a worker greater than the true mean of the worker distribution. 
-
-\input{results/table_final_belief_quantiles_by_group.tex}
-
-Table % input ref
-3 shows percentiles of beliefs on each group, under both the policy and baseline scenarios. It shows that, under the baseline scenario, while firms still hold lower beliefs on minorities in general, the difference is much lower than in the policy scenario. 
-
-\paragraph{Employer Experience}
-
+\paragraph{Employer Experience and Beliefs}
 The main hypotheses of \citet{Lepage2024}, which inspired the development of this model, is that firms who have an initial bad experience of a minority employee (low productivity) will never learn the true distribution of the minority group's productivity, their posterior beliefs fall below the true distribution of the group, and because they then expect lower productivity from this group, they no longer employ from them. Conversely, firms who have a positive initial experience do learn the true distribution because they continue to sample from that group with their high expectations.
-These hypotheses do not hold in this simulation; in LePage's model, there is a market clearing wage for each group, then any individual with an expected productivity below that wage is left unemployed. While in this simulation, the wage's are idiosyncratic to each firm, and depend on the firm's current posterior beliefs and on the productivities and signals of each worker; if a firm expects lower productivity, then their monopsonistic power allows them to simply offer a lower wage.
+These hypotheses do not hold in this simulation; in LePage's model, there is a market clearing wage for each group, then any individual with an expected productivity below that wage is left unemployed. While in this simulation, the wage's are idiosyncratic to each firm, and depend on the firm's current posterior beliefs and on the productivities and signals of each worker; if a firm expects lower productivity, then their monopsonistic power allows them to simply offer a lower wage. Consequently, minorities can become employed purely because firms feel they can offer them a lower wage.
 
-\begin{figure}[]
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1\textwidth]{figs/timeline_pair_firm9842_mu4.89.png}
+	\includegraphics[scale=0.6]{figs/timeline_pair_firm9842_mu4.89.png}
 	\caption[]{Development of the employer beliefs about each group for a single firm. Updates from actually learning about an individuals productivity by employing them is shown in blue, while updates from being rejected are shown in red. The most recent beliefs are the bold curves.}
 	\label{fig:employer_exp}
 \end{figure}
 
 Figure \ref{fig:employer_exp} shows the updates for a single firm. In the policy scenario, the beliefs for minorities reflect the actual distribution, but are ultimately much lower for the minority group than the majority group, while under the baseline scenario, the final posterior beliefs for this firm are similar for both groups.
 
+Additionally, firms do not learn the true distribution of the group; being faced with $n > 1$ workers at each stage increases the likelihood of them hiring a worker greater than the true mean of the worker distribution. 
+\input{results_910/table_final_belief_quantiles_by_group_---_unbiased_signals.tex}
+\input{results_910/table_final_belief_quantiles_by_group_---_downward-biased_signals.tex}
+
+
+Tables \ref{table:beliefs_unbiased} and \ref{table:beliefs_biased} shows percentiles of beliefs of each groups average productivity in the final period. Under the baseline scenarios, firms learn an average that is above the true mean of the distribution for both groups. This is because each firm matches with $n>1$ workers, and thus is likely to select a worker with a productivity higher than the mean. Under the policy scenarios, the beliefs over the minority group fall; the percentiles show that beliefs fall by the most at the bottom of the belief distribution. When the productivity signals of minorities are biased downwards, beliefs for minorities are stronger than the analogous scenario with on bias, but still weaker than the 'biased' baseline. The policy deflates beliefs of minorities because, on average, it reduces the productivity required to be hired by a firm, obversely, majority group worker beliefs are inflated, the policy necessitates a higher productivity and signal to be hired by a firm. These facts in conjunction serve to explain why, although giving greater opportunity to minorities, such policy creates divergence in the empirical wage distributions between the groups.
+\newpage
 \paragraph*{Equity}
 % can we look at how many wages were achieved by each group under each scenario? 
 % We could also look at total welfare (include profit) to see which scenario is welfare improving
 % Table of how much each worker was sampled.
-% Then in the discussion we can have a small section on normative vs positive statements; these stats do not consider that the increase in wages may mean more to some etc (strength of impetus)
+% Then in the discussion we can have a small section on normative vs positive statements; these stats do not consider that the increase in wages may mean more to some etc (strength of impetus
 
+\input{results_910/table_minority_choice_share_---_unbiased_signals.tex}
+
+\input{results_910/table_policy_effect_on_group_welfare_policy_baseline_unbiased_signals.tex}
+
+
+\input{results_910/table_minority_choice_share_---_downward-biased_signals.tex}
+
+\input{results_910/table_policy_effect_on_group_welfare_policy_baseline_downward-biased_signals.tex}
+
+\newpage
 \paragraph*{Regret}
-\begin{figure}[]
+Figure \ref{fig:cum_reget} shows the total regret of the firms in each period; while regret is higher in both scenarios where minority signals are downward biased, the policy in this case reduces regret unequivocally compared to the baseline. For the scenarios where there are no biased signals, the policy is unable to reduce regret for the firm precisely because productivities and signals are statistically indistinguishable at the group level.
+
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1\textwidth]{figs/cumulative_regret.png}
-	\caption[]{Regret under the baseline}
+	\includegraphics[scale=0.75]{figs_910/total_regret.png}
+	\caption[]{Total regret in each period, where the data is convolved on a 25 period basis.}
 	\label{fig:cum_reget}
 \end{figure}
 \newpage
 \section{Discussion}
 
-The results of this model contribute to the side of the literature that suggests that such 'affirmative action' policies are simultaneously inefficient and inequitable. Although the BayesUCB algorithm is essentially agnostic to the notion of a minority group, it gives precedence to that group purely because firms have greater uncertainty about them. Yet, because the minorities are statistically indistinguishable (in the model) at the group level, the results are intuitive. By the economic definition of discrimination, such a policy unfairly discriminates against the majority group. While there is some empirical evidence that affirmative action does exacerbate discrimination, as in \citet{aganstarr2018}, who provide such evidence on 'Ban the Box' policies. This policy prevents firms from asking whether an individual has a criminal history, and, as in the model, they fall back on 'group beliefs'; firms hypothesise over the likelihood of a prospective employee having a criminal record, and since minorities are empirically more likely to have a criminal history, call back rates amongst minorities falls massively. Yet, there are swathes of evidence showing that 'affirmative action' does work: the findings of \citet{LiRaymondBergman2020} show that exploratory algorithms such as \textit{UCB} allow objectives of fairness and profit to coalesce. 
+The results of this model contribute to the side of the literature that suggests that such 'affirmative action' policies are simultaneously inefficient and inequitable. Although the BayesUCB algorithm is essentially agnostic to the notion of a minority group, it gives precedence to that group purely because firms have greater uncertainty about them. When signals are unbiased, the minorities are statistically indistinguishable (in the model) at the group level, the results are intuitive. By the economic definition of discrimination, such a policy unfairly discriminates against the majority group. While there is some empirical evidence that affirmative action does exacerbate discrimination, as in \citet{aganstarr2018}, who provide such evidence on 'Ban the Box' policies. This policy prevents firms from asking whether an individual has a criminal history, and, as in the model, they fall back on 'group beliefs'; firms hypothesise over the likelihood of a prospective employee having a criminal record, and since minorities are empirically more likely to have a criminal history, call back rates amongst minorities falls massively. Yet, there are swathes of evidence showing that 'affirmative action' does work: the findings of \citet{LiRaymondBergman2020} show that exploratory algorithms such as \textit{UCB} allow objectives of fairness and profit to coalesce. 
 
 But the context is important. \citet{LiRaymondBergman2020} comes from firm-level data at a Fortune 500 company, where many in the applicant pool were had attended University, or obtained a Master's or PhD, while \citet{aganstarr2018}'s experimental design is targeted at low-skilled entry-level jobs, which bears similarity to the model presented here. It is plausible that different areas of the market demand different policy; in higher skilled jobs, where the is room for signals to be biased downwards, affirmative action could be necessary to account for systemic biases, while for low skilled jobs where individuals are likely to have equivalent signals and productivities, that affirmative action can exacerbate discrimination. 
 
@@ -434,7 +449,9 @@ The paper contributes to the literature surrounding discrimination arising endog
 
 The results from this experiment could show that 'soft affirmative action' could actually serve to exacerbate discrimination in the labour market. While the experiment shows minimal discrimination in the baseline scenario; the scenario with the policy intervention eventually shows greater levels of discrimination.
 
-\subsection{Model Assumptions and Criticisms}
+%\subsection{Model Assumptions and Criticisms}
+
+%Need to add that it is unable to capture government poicy; firms cannot discriminate based on race; yet we know this is the reality, so its not necessarily that far away from the truth.
 
 While the model does capture some empirical realities, it of course has it's drawbacks: \citet{Farmer2025} notes that the ad hoc assumptions of models such as this one can appear arbitrary, and as a consequence, are yet to make it in to mainstream economics. While the modelling decisions here can appear arbitrary, they are setup in order to highlight a specific mechanism of discrimination. While other models rely on certain assumptions such as inherent differences between groups, either emanating directly from innate ability, or from reliability of test scores, or from firm side discrimination such as direct taste-based discrimination. In fact, the assumptions made by the model are neutral; groups distributions are homogenous, and firms have unbiased beliefs over both groups; the only difference is the level of uncertainty over each group that the firm has. 
 
@@ -654,9 +671,9 @@ distribution are then:
 	+ \frac{\mathbb{V}[x \mid x > \tau]}{2}
 \end{align*}
 
-\newpage
-\section{Robustness checks}
-\label{ap:robustness}
-\include{results/robustness.tex}
-\includegraphics{figs/robustness_ucb_c_by_minority_ci.png}
+%\newpage
+%\section{Robustness checks}
+%\label{ap:robustness}
+%\include{results/robustness.tex}
+%\includegraphics{figs/robustness_ucb_c_by_minority_ci.png}
 \end{document}

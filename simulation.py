@@ -15,22 +15,24 @@ if __name__ == "__main__":
         y = Firms()
         for t in range(horizon):
             x = Workers()
-            wage_offers = [y.wage_offer(0, x, worker) for worker in x.workers_info.keys()]
-            signals = [x.workers_info[worker][2] for worker in x.workers_info.keys()]
+            wage_offers = [
+                y.wage_offer(0, x, worker) for worker in x.workers_info.keys()
+            ]
+            signals = [x.workers_info[worker][1] for worker in x.workers_info.keys()]
 
             # Record all offers this period (irrespective of acceptance/hiring).
             for g in range(n_groups):
                 group_offers = [
                     wage_offers[worker]
                     for worker in x.workers_info.keys()
-                    if x.workers_info[worker][3] == g
+                    if x.workers_info[worker][2] == g
                 ]
                 if len(group_offers) > 0:
                     wages_by_run_group[run, g, t] = float(np.mean(group_offers))
 
-            expected_profit = [s- w for w, s in zip(wage_offers, signals)]
+            expected_profit = [s - w for w, s in zip(wage_offers, signals)]
             matched_worker = np.argmax(expected_profit)
-            offered_group = x.workers_info[matched_worker][3]
+            offered_group = x.workers_info[matched_worker][2]
             offered_wage = wage_offers[matched_worker]
             accepted = x.accept_wage(matched_worker, offered_wage)
 
@@ -47,7 +49,13 @@ if __name__ == "__main__":
     for g in range(n_groups):
         # Plot individual run paths in background
         for run in range(n_runs):
-            plt.plot(time, wages_by_run_group[run, g, :], alpha=0.025, linewidth=1, color=f"C{g}")
+            plt.plot(
+                time,
+                wages_by_run_group[run, g, :],
+                alpha=0.025,
+                linewidth=1,
+                color=f"C{g}",
+            )
 
         # Plot raw expected wage path
         plt.plot(
